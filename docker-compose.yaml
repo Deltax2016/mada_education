@@ -11,6 +11,9 @@
 #   SERVICE_BASE64_64_*  generates and stores a secret once
 
 services:
+  # Healthchecks live in the Dockerfiles, not here. Declaring them in both
+  # places means compose silently wins and the Dockerfile becomes dead text that
+  # reads like configuration.
   web:
     build:
       context: ./apps/web
@@ -22,19 +25,10 @@ services:
       - NEXT_PUBLIC_APP_URL=${SERVICE_FQDN_WEB}
       - NEXT_PUBLIC_CDN_URL=${CDN_URL}
       - NEXT_PUBLIC_THAWANI_PUBLISHABLE_KEY=${THAWANI_PUBLISHABLE_KEY}
-    depends_on:
-      api:
-        condition: service_healthy
-    healthcheck:
-      test:
-        - CMD
-        - node
-        - -e
-        - "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+    # Deliberately no depends_on. Gating the site on the API being healthy means
+    # one slow database turns "the API is briefly unavailable" into "the domain
+    # has no server at all", which is a much worse failure and much harder to
+    # diagnose: the web container produces no logs because it never ran.
     restart: unless-stopped
 
   api:
@@ -88,14 +82,4 @@ services:
       # SENTRY_DSN is deliberately absent: nothing imports the SDK yet, and a
       # variable the app ignores reads as configured when it is not.
       - LOG_LEVEL=info
-    healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - "import urllib.request;urllib.request.urlopen('http://localhost:8000/health/ready')"
-      interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 40s
     restart: unless-stopped

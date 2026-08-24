@@ -29,7 +29,10 @@ RUN useradd -m -u 1001 app && chown -R app:app /app
 USER app
 
 EXPOSE 8000
-HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=6 \
-  CMD python -c "import urllib.request;urllib.request.urlopen('http://localhost:8000/health/ready')"
+# /health/live, not /health/ready. Readiness touches the database, and using it
+# here means a database hiccup kills a perfectly good container. Liveness answers
+# the only question a healthcheck should ask: is this process still serving.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=5 \
+  CMD python -c "import urllib.request;urllib.request.urlopen('http://localhost:8000/health/live')"
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
