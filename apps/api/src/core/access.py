@@ -57,12 +57,24 @@ class AccessResult:
 async def check(
     db: AsyncSession, user: User | None, lesson: Lesson, course: Course
 ) -> AccessResult:
-    is_staff = bool(user and ({"admin", "instructor"} & set(user.roles or [])))
+    roles = set(user.roles or []) if user else set()
 
-    if lesson.status != "published" and not is_staff:
+    # An admin can open anything, because support work requires seeing exactly
+    # what the learner sees.
+    #
+    # An instructor may open their OWN course, and nothing else. The role is
+    # self-serve: anyone can fill in a profile and get it, so treating it as a
+    # platform-wide pass would make every paid course free to anyone willing to
+    # spend a minute on a form.
+    can_bypass = bool(
+        user
+        and ("admin" in roles or ("instructor" in roles and course.instructor_id == user.id))
+    )
+
+    if lesson.status != "published" and not can_bypass:
         return AccessResult(NOT_PUBLISHED)
 
-    if is_staff:
+    if can_bypass:
         return AccessResult(ALLOWED)
 
     # Checked before the preview and free-course shortcuts: no lesson content is
@@ -101,9 +113,10 @@ async def has_course_access(db: AsyncSession, user: User | None, course: Course)
     """
     if not user:
         return False
-    if course.is_free:
+    roles = set(user.roles or [])
+    if "admin" in roles or ("instructor" in roles and course.instructor_id == user.id):
         return True
-    if {"admin", "instructor"} & set(user.roles or []):
+    if course.is_free:
         return True
     result = await db.execute(
         select(Enrollment).where(

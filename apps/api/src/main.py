@@ -13,6 +13,53 @@ from .core.logging import RequestLogMiddleware, configure as configure_logging
 configure_logging()
 
 
+async def _wait_for_database(log) -> None:
+    """Connect with a short backoff, then say plainly what is wrong.
+
+    A database that is not up yet is normal during orchestration, so a few
+    retries are worth it. A hostname that does not resolve will never resolve,
+    and the useful output there is one sentence naming the host, not thirty
+    lines of driver traceback that end in gaierror.
+    """
+    import asyncio
+    import socket
+    from urllib.parse import urlsplit
+
+    host = urlsplit(settings.database_url).hostname or "(none)"
+    last: Exception | None = None
+
+    for attempt in range(1, 6):
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            return
+        except Exception as error:  # noqa: BLE001 - re-raised below with context
+            last = error
+            unresolvable = isinstance(error, socket.gaierror) or "Name or service not known" in str(
+                error
+            )
+            if unresolvable:
+                log.error(
+                    f"database host {host!r} does not resolve from this container. "
+                    "On Coolify the database is a separate resource with its own "
+                    "network: use the internal hostname it shows and connect this "
+                    "application to that network, or use its public host and port.",
+                    extra={"extra_fields": {"host": host, "attempt": attempt}},
+                )
+                raise SystemExit(1)
+            log.warning(
+                f"database not reachable yet, retrying ({attempt}/5)",
+                extra={"extra_fields": {"host": host, "error": str(error)[:160]}},
+            )
+            await asyncio.sleep(attempt * 2)
+
+    log.error(
+        f"could not reach the database at {host!r} after five attempts",
+        extra={"extra_fields": {"host": host, "error": str(last)[:300]}},
+    )
+    raise SystemExit(1)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import logging
@@ -28,8 +75,7 @@ async def lifespan(app: FastAPI):
             }
         },
     )
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await _wait_for_database(logging.getLogger("startup"))
     yield
     await engine.dispose()
 

@@ -9,11 +9,21 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- keyboard; comparing raw strings misses most real input.
 CREATE OR REPLACE FUNCTION ar_normalize(t text) RETURNS text
   LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$
-  SELECT regexp_replace(
+  -- Must produce exactly what core/i18n.py ar_normalize produces. If the two
+  -- ever disagree, search and answer grading disagree with each other, and the
+  -- symptom is a correct answer marked wrong for no visible reason.
+  --
+  -- Order matters: diacritics and tatweel are deleted first, then letter shapes
+  -- are folded. Tatweel is deleted, never mapped to a space, or a stretched word
+  -- would normalise into two.
+  SELECT lower(
            translate(
-             t,
-             'أإآٱىئةؤـ٠١٢٣٤٥٦٧٨٩',
-             'اااايي' || 'هو' || ' ' || '0123456789'
-           ),
-           '[ً-ْٰ]', '', 'g')
+             regexp_replace(
+               replace(regexp_replace(t, '[ً-ْٰ]', '', 'g'), 'ـ', ''),
+               '[‌-‏؜]', '', 'g'
+             ),
+             'أإآٱىئةؤ٠١٢٣٤٥٦٧٨٩',
+             'اااايي' || 'هو' || '0123456789'
+           )
+         )
 $$;

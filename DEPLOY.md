@@ -16,7 +16,38 @@ Paste the internal connection string it gives you into `DATABASE_URL` as is.
 the async driver on startup, and libpq's `sslmode` parameter is translated into
 what asyncpg expects.
 
-Use the internal host Coolify shows, not the public one.
+### The one that actually breaks deployments
+
+`api` will not start if it cannot resolve the database host, and the symptom
+Coolify reports is `dependency failed to start: container api-... is unhealthy`,
+which says nothing about the database.
+
+A Postgres resource in Coolify sits on **its own Docker network**. The
+application stack is on a different one, so the internal hostname does not
+resolve from `api` until you join them. Pick one:
+
+- On the application resource, enable **Connect To Predefined Network**, then use
+  the internal hostname Coolify shows for the database. This keeps the traffic
+  inside Docker.
+- Or expose the database publicly on the resource and use its public host and
+  port in `DATABASE_URL`. Simpler, but the database is then reachable from the
+  internet and needs a strong password and ideally an IP allowlist.
+
+The app now reports this in one line instead of an asyncpg traceback:
+
+```
+database host 'postgres-abc123' does not resolve from this container.
+```
+
+If instead you see it retrying, the host resolves and the database is simply not
+up yet; it will connect on its own.
+
+### Ports
+
+The compose file publishes no ports. Both containers listen only inside the
+Docker network, on 3000 and 8000, and Traefik routes to them by domain from the
+`SERVICE_FQDN_*` variables. Nothing can collide with a port already in use on the
+host, and neither container is reachable except through the domain.
 
 If `DATABASE_URL` is missing while `APP_ENV=production`, the API refuses to
 start rather than falling back to SQLite. That fallback is fine locally and
