@@ -64,7 +64,7 @@ async def create_upload(payload: UploadRequest, db: DB, user: CurrentUser):
     db.add(asset)
     await db.commit()
 
-    presigned = storage.presign_put(key, payload.mimeType)
+    presigned = storage.presign_put(key, payload.mimeType, kind=payload.kind)
     return {"assetId": asset_id, "storageKey": key, **presigned}
 
 
@@ -99,7 +99,7 @@ async def playback(asset_id: str, db: DB, user: CurrentUser):
             raise AppError(verdict.code, verdict.status, "No access to this media")
 
     return {
-        "src": storage.presign_get(asset.storage_key),
+        "src": storage.presign_get(asset.storage_key, kind=asset.kind),
         "poster": asset.poster_url,
         "expiresIn": settings.signed_url_ttl,
         "watermark": {"text": user.display_name("en") or user.email},

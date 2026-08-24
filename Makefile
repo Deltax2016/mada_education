@@ -36,6 +36,9 @@ typecheck: ## Typecheck the web app
 	rm -rf $(WEB)/.next/types
 	cd $(WEB) && npx tsc --noEmit
 
+storage-check: ## Verify the R2 or MinIO credentials with a real round trip
+	cd $(API) && .venv/bin/python ../../scripts/check_storage.py
+
 test: ## Reset fixtures and smoke test the API end to end
 	@$(MAKE) seed
 	./scripts/smoke.sh

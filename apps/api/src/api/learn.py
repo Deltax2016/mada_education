@@ -196,13 +196,13 @@ async def get_lesson(course_slug: str, lesson_slug: str, db: DB, locale: Locale,
         if asset:
             media = {
                 "assetId": asset.id,
-                "src": storage.presign_get(asset.storage_key),
+                "src": storage.presign_get(asset.storage_key, kind=asset.kind),
                 "poster": asset.poster_url or (
                     storage.public_url(asset.poster_key) if asset.poster_key else None
                 ),
                 "durationSeconds": asset.duration_seconds,
                 "subtitles": [
-                    {"locale": k, "src": storage.presign_get(v)}
+                    {"locale": k, "src": storage.presign_get(v, kind="subtitle")}
                     for k, v in (asset.subtitles or {}).items()
                 ],
             }

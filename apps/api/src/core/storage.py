@@ -15,6 +15,10 @@ from .config import settings
 
 LOCAL_ROOT = Path(__file__).resolve().parents[2] / "storage"
 
+# Kinds whose objects are meant to be fetched straight from a CDN by a browser.
+# Everything else is private and only ever reachable through a signed URL.
+PUBLIC_KINDS = frozenset({"image"})
+
 
 class StorageService:
     def __init__(self) -> None:
@@ -46,16 +50,26 @@ class StorageService:
             )
         return self._client
 
-    def presign_put(self, key: str, content_type: str | None = None) -> dict:
+    def bucket_for(self, kind: str | None) -> str:
+        """Which bucket an object of this kind belongs in.
+
+        Falls back to the single private bucket when no public one is configured,
+        which is what local development and a first deploy look like.
+        """
+        if kind in PUBLIC_KINDS and settings.s3_public_bucket:
+            return settings.s3_public_bucket
+        return settings.s3_bucket
+
+    def presign_put(self, key: str, content_type: str | None = None, kind: str | None = None) -> dict:
         if self.local:
             return {"url": f"/api/v1/media/local-upload/{key}", "method": "PUT", "local": True}
-        params = {"Bucket": settings.s3_bucket, "Key": key}
+        params = {"Bucket": self.bucket_for(kind), "Key": key}
         if content_type:
             params["ContentType"] = content_type
         url = self.client.generate_presigned_url("put_object", Params=params, ExpiresIn=3600)
         return {"url": url, "method": "PUT", "local": False}
 
-    def presign_get(self, key: str, ttl: int | None = None) -> str:
+    def presign_get(self, key: str, ttl: int | None = None, kind: str | None = None) -> str:
         """Short-lived playback URL. Paid media never has a stable public URL."""
         if key.startswith("http://") or key.startswith("https://"):
             # Seed and demo assets that already live somewhere else.
@@ -64,17 +78,22 @@ class StorageService:
             return f"/api/v1/media/local/{key}"
         return self.client.generate_presigned_url(
             "get_object",
-            Params={"Bucket": settings.s3_bucket, "Key": key},
+            Params={"Bucket": self.bucket_for(kind), "Key": key},
             ExpiresIn=ttl or settings.signed_url_ttl,
         )
 
     def public_url(self, key: str) -> str:
-        """Only for assets that are genuinely public: covers, avatars, promos."""
+        """Only for assets that are genuinely public: covers, avatars, promos.
+
+        Without a public base URL this degrades to a signed URL rather than
+        guessing at a public address, so a half-configured deployment shows the
+        image instead of a broken one.
+        """
         if key.startswith("http://") or key.startswith("https://"):
             return key
         if settings.s3_public_base_url:
             return f"{settings.s3_public_base_url.rstrip('/')}/{key}"
-        return self.presign_get(key)
+        return self.presign_get(key, kind="image")
 
     def write_local(self, key: str, data: bytes) -> None:
         path = LOCAL_ROOT / key

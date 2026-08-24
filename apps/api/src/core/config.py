@@ -25,12 +25,17 @@ class Settings(BaseSettings):
     # Storage. Same code path for MinIO and Cloudflare R2 - only env changes.
     s3_endpoint: str = ""
     s3_region: str = "auto"
-    s3_bucket: str = "mada-media"
     s3_access_key: str = ""
     s3_secret_key: str = ""
-    s3_public_base_url: str = ""
     s3_force_path_style: bool = True
     signed_url_ttl: int = 14_400
+
+    # Two buckets, because attaching a public custom domain to a bucket makes
+    # every object in it readable by anyone who knows the key. Paid video and
+    # submitted homework must never live in a bucket that has one.
+    s3_bucket: str = "mada-media"          # private: video, documents, submissions
+    s3_public_bucket: str = ""             # public: covers, avatars; falls back to s3_bucket
+    s3_public_base_url: str = ""           # custom domain on the public bucket
 
     otp_ttl: int = 300
     otp_max_attempts: int = 5
