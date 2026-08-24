@@ -89,11 +89,54 @@ class EmailService:
             )
 
         if response.status_code >= 400:
-            # A fresh Resend account can only send to the address that owns it
-            # until a sending domain is verified; that shows up here as a 403.
-            log.error("resend rejected the message: %s %s", response.status_code, response.text)
+            self._explain(response.status_code, response.text)
             return False
         return True
+
+    @staticmethod
+    def _explain(status: int, body: str) -> None:
+        """Say what to change, not just that something failed.
+
+        Sign-in is the only way into the product, so an unsendable code is a
+        total outage. The provider knows exactly what is wrong and says so in the
+        response body; repeating that verbatim next to the fix is worth more than
+        a stack trace.
+        """
+        import json
+
+        try:
+            payload = json.loads(body)
+            message = payload.get("message") or payload.get("error") or body
+            name = payload.get("name", "")
+        except ValueError:
+            message, name = body, ""
+
+        text = f"{name} {message}".lower()
+
+        if "not verified" in text or ("domain" in text and name == "validation_error"):
+            hint = (
+                f"the sender domain in MAIL_FROM ({settings.mail_from}) is not verified "
+                "in Resend. Verify it under Domains and add the DNS records it asks "
+                "for, or set MAIL_FROM to 'Mada <onboarding@resend.dev>' meanwhile, "
+                "which only delivers to the address that owns the Resend account."
+            )
+        elif status in (401, 403) and "api" in text and "key" in text:
+            hint = "RESEND_API_KEY was rejected. Check that it is the full key and not truncated."
+        elif "testing emails" in text or "own email address" in text:
+            hint = (
+                "Resend is in its unverified state and will only deliver to the "
+                "account owner's address. Verify a sending domain to reach anyone else."
+            )
+        elif status == 429:
+            hint = "Resend is rate limiting. The code was not sent; the learner should retry."
+        else:
+            hint = "see the provider message above."
+
+        log.error(
+            "could not send the sign-in code: %s (resend said: %s)",
+            hint,
+            message,
+        )
 
 
 email_service = EmailService()
