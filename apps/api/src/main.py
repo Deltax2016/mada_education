@@ -14,48 +14,73 @@ configure_logging()
 
 
 async def _wait_for_database(log) -> None:
-    """Connect with a short backoff, then say plainly what is wrong.
+    """Keep trying to reach the database, then report what actually went wrong.
 
-    A database that is not up yet is normal during orchestration, so a few
-    retries are worth it. A hostname that does not resolve will never resolve,
-    and the useful output there is one sentence naming the host, not thirty
-    lines of driver traceback that end in gaierror.
+    Every failure is retried, DNS included. A container alias on a shared Docker
+    network is not resolvable the instant the process starts, and treating that
+    first lookup as fatal turns a normal startup race into a restart loop that
+    never recovers.
+
+    The retry window is deliberately longer than the healthcheck's start period,
+    so a slow database shows up as one honest error rather than a container that
+    dies and is restarted mid-diagnosis.
     """
     import asyncio
     import socket
     from urllib.parse import urlsplit
 
     host = urlsplit(settings.database_url).hostname or "(none)"
+    delays = [1, 2, 3, 5, 8, 8, 8, 8, 8]  # about a minute in total
     last: Exception | None = None
 
-    for attempt in range(1, 6):
+    for attempt, delay in enumerate(delays + [0], start=1):
         try:
             async with engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
-            return
-        except Exception as error:  # noqa: BLE001 - re-raised below with context
-            last = error
-            unresolvable = isinstance(error, socket.gaierror) or "Name or service not known" in str(
-                error
-            )
-            if unresolvable:
-                log.error(
-                    f"database host {host!r} does not resolve from this container. "
-                    "On Coolify the database is a separate resource with its own "
-                    "network: use the internal hostname it shows and connect this "
-                    "application to that network, or use its public host and port.",
-                    extra={"extra_fields": {"host": host, "attempt": attempt}},
+            if attempt > 1:
+                log.info(
+                    f"database reachable after {attempt} attempts",
+                    extra={"extra_fields": {"host": host}},
                 )
-                raise SystemExit(1)
+            return
+        except Exception as error:  # noqa: BLE001 - reported below with context
+            last = error
             log.warning(
-                f"database not reachable yet, retrying ({attempt}/5)",
-                extra={"extra_fields": {"host": host, "error": str(error)[:160]}},
+                f"database not reachable yet ({attempt}/{len(delays) + 1})",
+                extra={
+                    "extra_fields": {
+                        "host": host,
+                        "cause": type(error).__name__,
+                        "error": str(error)[:200],
+                    }
+                },
             )
-            await asyncio.sleep(attempt * 2)
+            if delay:
+                await asyncio.sleep(delay)
+
+    text = str(last)
+    if isinstance(last, socket.gaierror) or "Name or service not known" in text:
+        detail = (
+            f"the hostname {host!r} never resolved. The database container is either "
+            "not running, or it is not on a network this container can see. Check "
+            "that the database resource is started, and that this application is "
+            "attached to the same network."
+        )
+    elif "Connection refused" in text:
+        detail = (
+            f"{host!r} resolves but refused the connection. Something is listening "
+            "elsewhere: check the port, and that the database is actually started."
+        )
+    elif "password authentication failed" in text or "InvalidPassword" in text:
+        detail = "the host is reachable and the credentials were rejected. Check DATABASE_URL."
+    elif "does not exist" in text:
+        detail = "the host is reachable and the database name does not exist. Check DATABASE_URL."
+    else:
+        detail = f"giving up after {len(delays) + 1} attempts."
 
     log.error(
-        f"could not reach the database at {host!r} after five attempts",
-        extra={"extra_fields": {"host": host, "error": str(last)[:300]}},
+        f"cannot reach the database: {detail}",
+        extra={"extra_fields": {"host": host, "error": text[:400]}},
     )
     raise SystemExit(1)
 

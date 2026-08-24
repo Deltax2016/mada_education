@@ -14,7 +14,13 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # the static generation worker gets SIGKILLed rather than reporting an error when
 # it runs out of heap. Cap the heap explicitly so the failure cannot be silent.
 ENV NODE_OPTIONS=--max-old-space-size=3072
-RUN npm run build
+# --network=none is the point, not an optimisation. next/font/google fetches
+# woff2 files from fonts.gstatic.com during the build, which made every
+# deployment depend on the build machine reaching Google, and that is exactly how
+# this build failed. Fonts are vendored through @fontsource now, so the build
+# needs no network at all. If anyone reintroduces a build-time download, it fails
+# here on a machine we control instead of on a deploy server.
+RUN --network=none npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app

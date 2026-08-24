@@ -126,9 +126,9 @@
   --radius-lg: var(--r-lg);
   --radius-xl: var(--r-xl);
 
-  --font-sans: var(--font-latin), system-ui, sans-serif;
-  --font-arabic: var(--font-arabic), var(--font-latin), sans-serif;
-  --font-mono: var(--font-mono), ui-monospace, monospace;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 /* ---------------------------------------------------------------------------
@@ -146,12 +146,12 @@
 @custom-variant ar (&:is(:root[lang="ar"] *));
 
 html {
-  font-family: var(--font-sans);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
   -webkit-text-size-adjust: 100%;
 }
 
 html[lang="ar"] {
-  font-family: var(--font-arabic);
+  font-family: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
 }
 
 :root[lang="ar"] :is(h1, h2, h3, h4, h5, h6, p, blockquote, figcaption,

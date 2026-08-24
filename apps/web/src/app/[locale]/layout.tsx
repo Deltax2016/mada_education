@@ -1,7 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { IBM_Plex_Sans, IBM_Plex_Sans_Arabic, IBM_Plex_Mono } from "next/font/google";
 import "@/styles/globals.css";
+
+// Fonts are self hosted through @fontsource rather than next/font/google.
+// next/font/google downloads the woff2 files from fonts.gstatic.com during the
+// build, which makes every deployment depend on the build machine reaching
+// Google. That is what broke the first deploy. These packages ship the same IBM
+// Plex files inside node_modules, so the build needs nothing beyond the registry
+// it already uses for every other dependency.
+//
+// Only the subsets each locale actually needs are imported: arabic for Arabic,
+// latin for English, and one mono weight for figures.
+import "@fontsource/ibm-plex-sans-arabic/arabic-400.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-500.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-600.css";
+import "@fontsource/ibm-plex-sans-arabic/arabic-700.css";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-700.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
 
 import { Nav } from "@/components/layout/Nav";
 import { Footer } from "@/components/layout/Footer";
@@ -9,42 +28,6 @@ import { ThemeScript } from "@/components/layout/ThemeScript";
 import { api } from "@/lib/api";
 import { getDict, isLocale, LOCALES, type Locale } from "@/lib/i18n";
 import type { Me } from "@/lib/types";
-
-/**
- * IBM Plex Sans Arabic pairs with IBM Plex Sans on the same metrics, so a
- * bilingual page keeps one voice instead of two. Chosen over the usual
- * "creative brief means serif" reflex: this is a working reference product for
- * accountants and engineers, and a naskh serif would read as decorative here.
- */
-const arabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-arabic",
-  display: "swap",
-});
-
-const latin = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-latin",
-  display: "swap",
-});
-
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-mono",
-  display: "swap",
-  preload: false,
-});
-
-/**
- * The shell is personalised: the header shows the signed-in learner, and access
- * checks run per request. Prerendering it would cache a signed-out header and
- * serve it to everyone. Course data is still cached at the fetch level, which is
- * where the actual cost sits.
- */
-export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -104,7 +87,6 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       dir="ltr"
-      className={`${arabic.variable} ${latin.variable} ${mono.variable}`}
       suppressHydrationWarning
     >
       <head>
