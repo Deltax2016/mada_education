@@ -100,7 +100,24 @@ async def lifespan(app: FastAPI):
             }
         },
     )
-    await _wait_for_database(logging.getLogger("startup"))
+    log = logging.getLogger("startup")
+    await _wait_for_database(log)
+
+    # A fresh deployment has empty tables and therefore no catalogue, which looks
+    # like a broken site rather than a new one. Loading only when the catalogue is
+    # completely empty makes this a one time bootstrap that never touches a
+    # catalogue anyone has since curated.
+    from .content_loader import load_if_empty
+    from .core.db import SessionLocal
+
+    async with SessionLocal() as db:
+        result = await load_if_empty(db)
+    if result:
+        log.info(
+            f"loaded {len(result['added'])} courses into an empty catalogue",
+            extra={"extra_fields": {"courses": result["added"]}},
+        )
+
     yield
     await engine.dispose()
 

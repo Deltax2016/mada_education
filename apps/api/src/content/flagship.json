@@ -1,0 +1,734 @@
+{
+ "slug": "vat-compliance-oman",
+ "title": {
+  "ar": "ضريبة القيمة المضافة في سلطنة عمان: من التسجيل إلى الإقرار",
+  "en": "VAT in Oman: from registration to filing"
+ },
+ "subtitle": {
+  "ar": "دورة عملية لأصحاب الأعمال والمحاسبين تغطي التسجيل والفوترة والإقرارات الربعية.",
+  "en": "A practical course for owners and accountants covering registration, invoicing and quarterly returns."
+ },
+ "description": {
+  "ar": "تشرح هذه الدورة كيفية التعامل مع ضريبة القيمة المضافة بنسبة 5% في سلطنة عمان خطوة بخطوة: متى يجب التسجيل، كيف تُصدر فاتورة ضريبية صحيحة، وكيف تُعدّ الإقرار الربعي دون أخطاء. كل درس مبني على حالات واقعية من شركات صغيرة ومتوسطة في مسقط وصلالة.",
+  "en": "This course walks through Oman's 5% VAT step by step: when registration becomes mandatory, how to issue a compliant tax invoice, and how to prepare the quarterly return without errors. Every lesson is built on real cases from small and mid-sized companies in Muscat and Salalah."
+ },
+ "outcomes": {
+  "ar": [
+   "تحديد ما إذا كان نشاطك ملزماً بالتسجيل في ضريبة القيمة المضافة",
+   "إصدار فاتورة ضريبية مستوفية للشروط النظامية",
+   "احتساب الضريبة على المبيعات والمشتريات بشكل صحيح",
+   "إعداد الإقرار الربعي وتفادي الأخطاء الأكثر شيوعاً"
+  ],
+  "en": [
+   "Decide whether your business must register for VAT",
+   "Issue a tax invoice that meets the legal requirements",
+   "Calculate output and input tax correctly",
+   "Prepare the quarterly return and avoid the most common errors"
+  ]
+ },
+ "requirements": {
+  "ar": [
+   "معرفة أساسية بالمحاسبة",
+   "جهاز حاسوب مع جدول بيانات"
+  ],
+  "en": [
+   "Basic accounting knowledge",
+   "A computer with a spreadsheet"
+  ]
+ },
+ "modules": [
+  {
+   "title": {
+    "ar": "الأساسيات والتسجيل",
+    "en": "Basics and registration"
+   },
+   "lessons": [
+    {
+     "slug": "what-is-vat",
+     "title": {
+      "ar": "ما هي ضريبة القيمة المضافة ولماذا تهمك",
+      "en": "What VAT is and why it matters"
+     },
+     "durationMinutes": 18,
+     "blocksAr": [
+      {
+       "id": "b1",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "الفكرة في سطر واحد"
+       }
+      },
+      {
+       "id": "b2",
+       "type": "paragraph",
+       "data": {
+        "text": "ضريبة القيمة المضافة ضريبة غير مباشرة بنسبة 5% تُفرض على معظم السلع والخدمات في سلطنة عمان. أنت لا تدفعها من أرباحك: أنت تجمعها من العميل وتوردها لجهاز الضرائب."
+       }
+      },
+      {
+       "id": "b3",
+       "type": "callout",
+       "data": {
+        "variant": "info",
+        "text": "الخطأ الأكثر شيوعاً بين أصحاب الأعمال الجدد هو معاملة الضريبة المحصّلة كإيراد. هي ليست إيرادك في أي لحظة."
+       }
+      },
+      {
+       "id": "b4",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "الضريبة على المخرجات والمدخلات"
+       }
+      },
+      {
+       "id": "b5",
+       "type": "paragraph",
+       "data": {
+        "text": "ما تحصّله من عملائك يسمى ضريبة المخرجات. ما تدفعه لمورديك يسمى ضريبة المدخلات. ما توّرده فعلياً هو الفرق بينهما."
+       }
+      },
+      {
+       "id": "b6",
+       "type": "list",
+       "data": {
+        "ordered": false,
+        "items": [
+         "ضريبة المخرجات: 5% على فواتير مبيعاتك",
+         "ضريبة المدخلات: 5% دفعتها على مشترياتك الخاضعة",
+         "المستحق = المخرجات ناقص المدخلات"
+        ]
+       }
+      }
+     ],
+     "blocksEn": [
+      {
+       "id": "b1",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "The idea in one line"
+       }
+      },
+      {
+       "id": "b2",
+       "type": "paragraph",
+       "data": {
+        "text": "VAT is an indirect 5% tax applied to most goods and services in Oman. You do not pay it out of your profit: you collect it from the customer and remit it to the tax authority."
+       }
+      },
+      {
+       "id": "b3",
+       "type": "callout",
+       "data": {
+        "variant": "info",
+        "text": "The most common mistake among new business owners is treating collected VAT as revenue. It is never your money."
+       }
+      },
+      {
+       "id": "b4",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "Output tax and input tax"
+       }
+      },
+      {
+       "id": "b5",
+       "type": "paragraph",
+       "data": {
+        "text": "What you collect from customers is output tax. What you pay suppliers is input tax. What you actually remit is the difference."
+       }
+      },
+      {
+       "id": "b6",
+       "type": "list",
+       "data": {
+        "ordered": false,
+        "items": [
+         "Output tax: 5% on your sales invoices",
+         "Input tax: 5% you paid on taxable purchases",
+         "Payable = output minus input"
+        ]
+       }
+      }
+     ],
+     "video": {
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "poster": "https://picsum.photos/seed/vat-oman-lesson-intro/1200/675",
+      "durationSeconds": 15.0
+     }
+    },
+    {
+     "slug": "registration-threshold",
+     "title": {
+      "ar": "متى يصبح التسجيل إلزامياً",
+      "en": "When registration becomes mandatory"
+     },
+     "durationMinutes": 14,
+     "blocksAr": [
+      {
+       "id": "c1",
+       "type": "paragraph",
+       "data": {
+        "text": "التسجيل الإلزامي مرتبط بقيمة التوريدات السنوية الخاضعة للضريبة. راقب رقمك على مدى اثني عشر شهراً متتالية، لا على السنة المالية وحدها."
+       }
+      },
+      {
+       "id": "c2",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "الحدود والنسب تتغير بقرار من الجهات المختصة. تحقق دائماً من آخر تحديث على موقع جهاز الضرائب قبل اتخاذ قرار."
+       }
+      },
+      {
+       "id": "c3",
+       "type": "heading",
+       "data": {
+        "level": 3,
+        "text": "التسجيل الاختياري"
+       }
+      },
+      {
+       "id": "c4",
+       "type": "paragraph",
+       "data": {
+        "text": "إذا كانت أغلب مشترياتك خاضعة للضريبة وعملاؤك شركات مسجلة، فقد يكون التسجيل الاختياري في مصلحتك لأنه يتيح لك استرداد ضريبة المدخلات."
+       }
+      }
+     ],
+     "blocksEn": [
+      {
+       "id": "c1",
+       "type": "paragraph",
+       "data": {
+        "text": "Mandatory registration is tied to the value of your annual taxable supplies. Track the figure across twelve rolling months, not just the fiscal year."
+       }
+      },
+      {
+       "id": "c2",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "Thresholds and rates change by decision of the authorities. Always check the latest guidance from the tax authority before acting."
+       }
+      },
+      {
+       "id": "c3",
+       "type": "heading",
+       "data": {
+        "level": 3,
+        "text": "Voluntary registration"
+       }
+      },
+      {
+       "id": "c4",
+       "type": "paragraph",
+       "data": {
+        "text": "If most of your purchases are taxable and your customers are registered businesses, voluntary registration can work in your favour because it lets you recover input tax."
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": {
+    "ar": "الفوترة والاحتساب",
+    "en": "Invoicing and calculation"
+   },
+   "lessons": [
+    {
+     "slug": "tax-invoice",
+     "title": {
+      "ar": "عناصر الفاتورة الضريبية الصحيحة",
+      "en": "What a compliant tax invoice contains"
+     },
+     "durationMinutes": 22,
+     "blocksAr": [
+      {
+       "id": "d1",
+       "type": "paragraph",
+       "data": {
+        "text": "الفاتورة الناقصة هي السبب الأول لرفض استرداد ضريبة المدخلات عند المراجعة. القائمة التالية هي الحد الأدنى الذي يجب أن يظهر على كل فاتورة تصدرها."
+       }
+      },
+      {
+       "id": "d2",
+       "type": "list",
+       "data": {
+        "ordered": true,
+        "items": [
+         "كلمة «فاتورة ضريبية» بشكل واضح",
+         "اسم المورّد وعنوانه ورقم التسجيل الضريبي",
+         "تاريخ الإصدار وتاريخ التوريد إن اختلفا",
+         "رقم تسلسلي فريد لا يتكرر",
+         "وصف السلعة أو الخدمة والكمية",
+         "المبلغ قبل الضريبة، ونسبة الضريبة، ومبلغ الضريبة، والإجمالي"
+        ]
+       }
+      },
+      {
+       "id": "d3",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "الترقيم التسلسلي يجب أن يكون متصلاً بلا فجوات. الفجوة في الترقيم سؤال مباشر في أي مراجعة."
+       }
+      },
+      {
+       "id": "d4",
+       "type": "table",
+       "data": {
+        "headers": [
+         "البند",
+         "قبل الضريبة",
+         "الضريبة 5%",
+         "الإجمالي"
+        ],
+        "rows": [
+         [
+          "استشارة محاسبية",
+          "100.000",
+          "5.000",
+          "105.000"
+         ],
+         [
+          "تدريب فريق",
+          "250.000",
+          "12.500",
+          "262.500"
+         ]
+        ]
+       }
+      },
+      {
+       "id": "d5",
+       "type": "paragraph",
+       "data": {
+        "text": "لاحظ ثلاث خانات عشرية: الريال العماني يقسم إلى ألف بيسة، لا إلى مئة. أي نظام يتعامل مع خانتين فقط سيعطي مبالغ خاطئة."
+       }
+      }
+     ],
+     "blocksEn": [
+      {
+       "id": "d1",
+       "type": "paragraph",
+       "data": {
+        "text": "An incomplete invoice is the number one reason input tax recovery is rejected during an audit. The list below is the minimum that must appear on every invoice you issue."
+       }
+      },
+      {
+       "id": "d2",
+       "type": "list",
+       "data": {
+        "ordered": true,
+        "items": [
+         "The words 'Tax Invoice', clearly shown",
+         "Supplier name, address and tax registration number",
+         "Issue date, and supply date if they differ",
+         "A unique sequential number",
+         "Description of the goods or service, and quantity",
+         "Amount before tax, tax rate, tax amount, and total"
+        ]
+       }
+      },
+      {
+       "id": "d3",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "Sequential numbering must be unbroken. A gap in the sequence is a direct question in any audit."
+       }
+      },
+      {
+       "id": "d4",
+       "type": "table",
+       "data": {
+        "headers": [
+         "Item",
+         "Net",
+         "VAT 5%",
+         "Total"
+        ],
+        "rows": [
+         [
+          "Accounting consultation",
+          "100.000",
+          "5.000",
+          "105.000"
+         ],
+         [
+          "Team training",
+          "250.000",
+          "12.500",
+          "262.500"
+         ]
+        ]
+       }
+      },
+      {
+       "id": "d5",
+       "type": "paragraph",
+       "data": {
+        "text": "Note three decimal places: the Omani rial divides into 1000 baisa, not 100. Any system that assumes two decimals will produce wrong amounts."
+       }
+      }
+     ],
+     "video": {
+      "src": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      "poster": "https://picsum.photos/seed/vat-oman-lesson-returns/1200/675",
+      "durationSeconds": 15.0
+     }
+    },
+    {
+     "slug": "input-tax-recovery",
+     "title": {
+      "ar": "استرداد ضريبة المدخلات وحالات الاستثناء",
+      "en": "Recovering input tax, and the exceptions"
+     },
+     "durationMinutes": 16,
+     "blocksAr": [
+      {
+       "id": "e1",
+       "type": "paragraph",
+       "data": {
+        "text": "ليست كل ضريبة تدفعها قابلة للاسترداد. الاستثناءات محدودة لكنها تتكرر كثيراً في الشركات الصغيرة، وأغلب الملاحظات في المراجعة تأتي من هنا."
+       }
+      },
+      {
+       "id": "e2",
+       "type": "list",
+       "data": {
+        "ordered": false,
+        "items": [
+         "المصروفات الترفيهية لغير الموظفين",
+         "المركبات الشخصية غير المخصصة للنشاط",
+         "المشتريات بلا فاتورة ضريبية مستوفية",
+         "التوريدات المرتبطة بنشاط معفى"
+        ]
+       }
+      },
+      {
+       "id": "e3",
+       "type": "paragraph",
+       "data": {
+        "text": "القاعدة العملية: احتفظ بالفاتورة الأصلية، واربطها بقيد محاسبي واحد، ولا تعتمد على كشف الحساب البنكي كإثبات."
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "title": {
+    "ar": "الإقرار الربعي",
+    "en": "The quarterly return"
+   },
+   "lessons": [
+    {
+     "slug": "quarterly-return",
+     "title": {
+      "ar": "إعداد الإقرار الربعي خطوة بخطوة",
+      "en": "Preparing the quarterly return step by step"
+     },
+     "durationMinutes": 24,
+     "blocksAr": [
+      {
+       "id": "f1",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "الترتيب الصحيح للعمل"
+       }
+      },
+      {
+       "id": "f2",
+       "type": "list",
+       "data": {
+        "ordered": true,
+        "items": [
+         "أقفل دفتر المبيعات والمشتريات للربع",
+         "طابق مجموع الفواتير مع دفتر الأستاذ",
+         "افصل التوريدات المعفاة عن الخاضعة",
+         "احسب صافي المستحق أو القابل للاسترداد",
+         "قدّم الإقرار وسدّد قبل انتهاء المهلة"
+        ]
+       }
+      },
+      {
+       "id": "f3",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "التأخير في التقديم يترتب عليه غرامة حتى لو كان صافي المستحق صفراً. قدّم في الموعد ولو كان الرقم صفراً."
+       }
+      },
+      {
+       "id": "f4",
+       "type": "paragraph",
+       "data": {
+        "text": "في الدرس القادم نطبّق هذه الخطوات على حالة شركة توريد مواد بناء في مسقط، بأرقام حقيقية من ربع كامل."
+       }
+      }
+     ],
+     "blocksEn": [
+      {
+       "id": "f1",
+       "type": "heading",
+       "data": {
+        "level": 2,
+        "text": "The right order of work"
+       }
+      },
+      {
+       "id": "f2",
+       "type": "list",
+       "data": {
+        "ordered": true,
+        "items": [
+         "Close the sales and purchase ledgers for the quarter",
+         "Reconcile invoice totals against the general ledger",
+         "Separate exempt supplies from taxable ones",
+         "Calculate the net payable or refundable amount",
+         "File and pay before the deadline"
+        ]
+       }
+      },
+      {
+       "id": "f3",
+       "type": "callout",
+       "data": {
+        "variant": "warning",
+        "text": "Late filing carries a penalty even when the net amount is zero. File on time regardless of the figure."
+       }
+      },
+      {
+       "id": "f4",
+       "type": "paragraph",
+       "data": {
+        "text": "The next lesson applies these steps to a building materials supplier in Muscat, using real figures from a full quarter."
+       }
+      }
+     ]
+    },
+    {
+     "slug": "final-check",
+     "title": {
+      "ar": "اختبار: هل أنت جاهز للإقرار؟",
+      "en": "Quiz: are you ready to file?"
+     },
+     "durationMinutes": 10,
+     "blocksAr": [
+      {
+       "id": "g1",
+       "type": "paragraph",
+       "data": {
+        "text": "ستة أسئلة تغطي ما مررنا به. النجاح من 70%، ولديك ثلاث محاولات."
+       }
+      }
+     ],
+     "blocksEn": [
+      {
+       "id": "g1",
+       "type": "paragraph",
+       "data": {
+        "text": "Six questions covering what we went through. Pass mark is 70%, and you have three attempts."
+       }
+      }
+     ],
+     "isQuizLesson": true
+    }
+   ]
+  }
+ ],
+ "quizTitle": {
+  "ar": "اختبار نهاية الدورة",
+  "en": "End of course quiz"
+ },
+ "questions": [
+  {
+   "type": "single",
+   "prompt": {
+    "ar": "ما نسبة ضريبة القيمة المضافة القياسية في سلطنة عمان؟",
+    "en": "What is the standard VAT rate in Oman?"
+   },
+   "explanation": {
+    "ar": "النسبة القياسية 5% وهي من أدنى النسب في المنطقة.",
+    "en": "The standard rate is 5%, among the lowest in the region."
+   },
+   "options": [
+    {
+     "content": {
+      "ar": "5%",
+      "en": "5%"
+     },
+     "isCorrect": true
+    },
+    {
+     "content": {
+      "ar": "10%",
+      "en": "10%"
+     },
+     "isCorrect": false
+    },
+    {
+     "content": {
+      "ar": "15%",
+      "en": "15%"
+     },
+     "isCorrect": false
+    },
+    {
+     "content": {
+      "ar": "لا توجد ضريبة",
+      "en": "No VAT applies"
+     },
+     "isCorrect": false
+    }
+   ]
+  },
+  {
+   "type": "boolean",
+   "prompt": {
+    "ar": "الضريبة التي تحصّلها من العميل تُعد جزءاً من إيرادك.",
+    "en": "VAT collected from a customer counts as part of your revenue."
+   },
+   "explanation": {
+    "ar": "لا. المبلغ المحصّل أمانة لدى المنشأة حتى يورد لجهاز الضرائب.",
+    "en": "No. The collected amount is held on behalf of the tax authority until remitted."
+   },
+   "options": [
+    {
+     "content": {
+      "ar": "صحيح",
+      "en": "True"
+     },
+     "isCorrect": false
+    },
+    {
+     "content": {
+      "ar": "خطأ",
+      "en": "False"
+     },
+     "isCorrect": true
+    }
+   ]
+  },
+  {
+   "type": "multiple",
+   "prompt": {
+    "ar": "أي من العناصر التالية يجب أن تظهر على الفاتورة الضريبية؟ اختر كل ما ينطبق.",
+    "en": "Which of the following must appear on a tax invoice? Select all that apply."
+   },
+   "explanation": {
+    "ar": "رقم التسجيل الضريبي والرقم التسلسلي ومبلغ الضريبة كلها إلزامية. شعار الشركة ليس شرطاً نظامياً.",
+    "en": "The tax registration number, the sequential number and the tax amount are all required. A company logo is not a legal requirement."
+   },
+   "options": [
+    {
+     "content": {
+      "ar": "رقم التسجيل الضريبي للمورّد",
+      "en": "Supplier tax registration number"
+     },
+     "isCorrect": true
+    },
+    {
+     "content": {
+      "ar": "رقم تسلسلي فريد",
+      "en": "A unique sequential number"
+     },
+     "isCorrect": true
+    },
+    {
+     "content": {
+      "ar": "مبلغ الضريبة بشكل منفصل",
+      "en": "The tax amount, shown separately"
+     },
+     "isCorrect": true
+    },
+    {
+     "content": {
+      "ar": "شعار الشركة",
+      "en": "The company logo"
+     },
+     "isCorrect": false
+    }
+   ]
+  },
+  {
+   "type": "number",
+   "prompt": {
+    "ar": "فاتورة بقيمة 250.000 ريال عماني قبل الضريبة. كم مبلغ الضريبة بالريال؟",
+    "en": "An invoice is 250.000 OMR before tax. What is the tax amount in rials?"
+   },
+   "explanation": {
+    "ar": "250.000 × 5% = 12.500 ريال، أي 12500 بيسة.",
+    "en": "250.000 × 5% = 12.500 rials, that is 12500 baisa."
+   },
+   "target": 12.5,
+   "tolerance": 0.001,
+   "unit": "OMR"
+  },
+  {
+   "type": "short_text",
+   "prompt": {
+    "ar": "ما الاسم الذي يطلق على الضريبة التي تدفعها على مشترياتك؟ (كلمتان)",
+    "en": "What is the tax you pay on your purchases called? (two words)"
+   },
+   "explanation": {
+    "ar": "ضريبة المدخلات. وهي ما تخصمه من ضريبة المخرجات عند إعداد الإقرار.",
+    "en": "Input tax. It is what you deduct from output tax when preparing the return."
+   },
+   "accepted": [
+    "ضريبة المدخلات",
+    "المدخلات",
+    "input tax",
+    "input"
+   ]
+  },
+  {
+   "type": "single",
+   "prompt": {
+    "ar": "متى يجب تقديم الإقرار إذا كان صافي المستحق صفراً؟",
+    "en": "When must the return be filed if the net payable is zero?"
+   },
+   "explanation": {
+    "ar": "في الموعد المحدد كالمعتاد. التأخير يترتب عليه غرامة بغض النظر عن المبلغ.",
+    "en": "On the normal deadline. Late filing carries a penalty regardless of the amount."
+   },
+   "options": [
+    {
+     "content": {
+      "ar": "في الموعد المحدد كالمعتاد",
+      "en": "On the normal deadline"
+     },
+     "isCorrect": true
+    },
+    {
+     "content": {
+      "ar": "لا حاجة لتقديم إقرار",
+      "en": "No return is needed"
+     },
+     "isCorrect": false
+    },
+    {
+     "content": {
+      "ar": "مع إقرار الربع التالي",
+      "en": "With the next quarter's return"
+     },
+     "isCorrect": false
+    },
+    {
+     "content": {
+      "ar": "خلال سنة",
+      "en": "Within a year"
+     },
+     "isCorrect": false
+    }
+   ]
+  }
+ ]
+}

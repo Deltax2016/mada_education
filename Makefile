@@ -17,6 +17,9 @@ up: ## Start local infrastructure (postgres, redis, minio, mailpit)
 down: ## Stop local infrastructure
 	docker compose -f docker/compose.dev.yaml down
 
+load-content: ## Add any missing course to an existing catalogue, safe on production
+	cd $(API) && .venv/bin/python -m src.load_content
+
 seed: ## Reset the database and load the bilingual demo course
 	cd $(API) && .venv/bin/python -m src.seed
 
