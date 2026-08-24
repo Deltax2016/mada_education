@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+
 import { getAccessToken } from "./session";
 import type { Locale } from "./i18n";
 
@@ -36,12 +38,19 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
     url.searchParams.set("locale", locale);
   }
 
+  // Carried through so one browser action reads as one chain across both
+  // services rather than two unrelated log lines.
+  const requestId = await headers()
+    .then((h) => h.get("x-request-id"))
+    .catch(() => null);
+
   const res = await fetch(url, {
     method,
     headers: {
       "Content-Type": "application/json",
       ...(locale ? { "Accept-Language": locale } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(requestId ? { "X-Request-Id": requestId } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: cache ?? (revalidate !== undefined ? undefined : "no-store"),

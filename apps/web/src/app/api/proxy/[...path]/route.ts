@@ -25,6 +25,9 @@ async function forward(request: Request, path: string[]) {
       ...(request.headers.get("accept-language")
         ? { "Accept-Language": request.headers.get("accept-language") as string }
         : {}),
+      ...(request.headers.get("x-request-id")
+        ? { "X-Request-Id": request.headers.get("x-request-id") as string }
+        : {}),
     },
     body,
     cache: "no-store",

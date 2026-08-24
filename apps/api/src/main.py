@@ -7,10 +7,27 @@ from .api import auth, billing, catalog, learn, media, public, quiz, teach
 from .core.config import settings
 from .core.db import Base, engine
 from .core.errors import AppError, app_error_handler
+from .core.logging import RequestLogMiddleware, configure as configure_logging
+
+
+configure_logging()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import logging
+
+    logging.getLogger("startup").info(
+        "starting",
+        extra={
+            "extra_fields": {
+                "env": settings.app_env,
+                "database": settings.database_url.split("://")[0],
+                "storage": "s3" if settings.storage_configured else "local",
+                "email": "resend" if settings.resend_api_key else "console",
+            }
+        },
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
@@ -23,6 +40,9 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url="/docs",
 )
+
+# Outermost, so it sees the status that actually reaches the client.
+app.add_middleware(RequestLogMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
