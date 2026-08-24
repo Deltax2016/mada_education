@@ -1,0 +1,61 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from .api import auth, billing, catalog, learn, media, public, quiz, teach
+from .core.config import settings
+from .core.db import Base, engine
+from .core.errors import AppError, app_error_handler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(
+    title="Mada Education API",
+    version="0.1.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.app_url, "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_exception_handler(AppError, app_error_handler)
+
+for router in (
+    auth.router,
+    catalog.router,
+    learn.router,
+    quiz.router,
+    media.router,
+    billing.router,
+    public.router,
+    teach.router,
+):
+    app.include_router(router, prefix="/api/v1")
+
+
+@app.get("/health/live")
+async def live():
+    return {"status": "ok"}
+
+
+@app.get("/health/ready")
+async def ready():
+    from sqlalchemy import text
+
+    async with engine.connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    return {"status": "ok", "locales": settings.locales, "storage": "s3" if settings.storage_configured else "local"}

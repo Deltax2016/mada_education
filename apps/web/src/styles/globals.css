@@ -1,0 +1,320 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens.
+
+   One accent (teal), one radius scale, one neutral family. Colours are declared
+   as semantic variables three times: bare :root is light, the media query
+   handles "system dark", and [data-theme] lets a manual toggle win in either
+   direction. Nothing gets its only definition inside a media query.
+--------------------------------------------------------------------------- */
+
+:root {
+  --bg:            #FAFAF9;
+  --surface:       #FFFFFF;
+  --surface-2:     #F3F5F4;
+  --surface-3:     #E8ECEA;
+  --fg:            #10201D;
+  --fg-muted:      #566C67;
+  --fg-subtle:     #7C8F8A;
+  --border:        #DCE3E1;
+  --border-strong: #C3CECB;
+
+  --primary:       #0F766E;
+  --primary-hover: #0B5D57;
+  --on-primary:    #FFFFFF;
+  --primary-soft:  #E4F1EE;
+  --primary-ring:  #0F766E40;
+
+  --danger:        #B4231F;
+  --danger-soft:   #FBE9E8;
+  --warning:       #8A5A08;
+  --warning-soft:  #FDF2DC;
+  --success:       #0F766E;
+
+  --shadow-sm: 0 1px 2px 0 #10201D0F;
+  --shadow-md: 0 4px 16px -4px #10201D14, 0 1px 3px 0 #10201D0A;
+  --shadow-lg: 0 18px 48px -12px #10201D24;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  --nav-h: 68px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:            #0B0F0E;
+    --surface:       #121817;
+    --surface-2:     #171F1D;
+    --surface-3:     #1F2926;
+    --fg:            #E9EFED;
+    --fg-muted:      #9DAEA9;
+    --fg-subtle:     #7A8A86;
+    --border:        #24302D;
+    --border-strong: #33413D;
+
+    --primary:       #2FBFAE;
+    --primary-hover: #47D2C1;
+    --on-primary:    #04231F;
+    --primary-soft:  #12312D;
+    --primary-ring:  #2FBFAE55;
+
+    --danger:        #F2837E;
+    --danger-soft:   #331A19;
+    --warning:       #E0B15C;
+    --warning-soft:  #2E2415;
+    --success:       #2FBFAE;
+
+    --shadow-sm: 0 1px 2px 0 #00000059;
+    --shadow-md: 0 4px 16px -4px #00000073, 0 1px 3px 0 #00000040;
+    --shadow-lg: 0 18px 48px -12px #00000099;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:            #0B0F0E;
+  --surface:       #121817;
+  --surface-2:     #171F1D;
+  --surface-3:     #1F2926;
+  --fg:            #E9EFED;
+  --fg-muted:      #9DAEA9;
+  --fg-subtle:     #7A8A86;
+  --border:        #24302D;
+  --border-strong: #33413D;
+
+  --primary:       #2FBFAE;
+  --primary-hover: #47D2C1;
+  --on-primary:    #04231F;
+  --primary-soft:  #12312D;
+  --primary-ring:  #2FBFAE55;
+
+  --danger:        #F2837E;
+  --danger-soft:   #331A19;
+  --warning:       #E0B15C;
+  --warning-soft:  #2E2415;
+  --success:       #2FBFAE;
+
+  --shadow-sm: 0 1px 2px 0 #00000059;
+  --shadow-md: 0 4px 16px -4px #00000073, 0 1px 3px 0 #00000040;
+  --shadow-lg: 0 18px 48px -12px #00000099;
+}
+
+@theme inline {
+  --color-bg:            var(--bg);
+  --color-surface:       var(--surface);
+  --color-surface-2:     var(--surface-2);
+  --color-surface-3:     var(--surface-3);
+  --color-fg:            var(--fg);
+  --color-fg-muted:      var(--fg-muted);
+  --color-fg-subtle:     var(--fg-subtle);
+  --color-border:        var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary:       var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary:    var(--on-primary);
+  --color-primary-soft:  var(--primary-soft);
+  --color-danger:        var(--danger);
+  --color-danger-soft:   var(--danger-soft);
+  --color-warning:       var(--warning);
+  --color-warning-soft:  var(--warning-soft);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+
+  --font-sans: var(--font-latin), system-ui, sans-serif;
+  --font-arabic: var(--font-arabic), var(--font-latin), sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------------------
+   Direction.
+
+   The document is LTR in both locales, so the layout never mirrors: the logo,
+   the account menu and every illustration keep the position they have on the
+   English page. Right-to-left is applied to text-bearing elements only.
+
+   Only leaf text elements get direction: rtl. Setting it on a flex or grid
+   container would reverse that container's children, which is exactly the
+   mirroring this design avoids.
+--------------------------------------------------------------------------- */
+
+@custom-variant ar (&:is(:root[lang="ar"] *));
+
+html {
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+html[lang="ar"] {
+  font-family: var(--font-arabic);
+}
+
+:root[lang="ar"] :is(h1, h2, h3, h4, h5, h6, p, blockquote, figcaption,
+                     dd, dt, caption, td, th, legend, summary, label) {
+  text-align: right;
+}
+
+/* Direction is applied separately and skips numeric runs. A element carrying
+   .tnum holds a quantity, and a quantity reads left to right in both locales:
+   without this exclusion "0 / 6" renders as "6 / 0" because the element rule
+   outranks the .tnum class. */
+:root[lang="ar"] :is(h1, h2, h3, h4, h5, h6, p, blockquote, figcaption,
+                     dd, dt, caption, td, th, legend, summary, label):not(.tnum):not(.ltr-island) {
+  direction: rtl;
+}
+
+/* Prose lists are marked by the block renderer rather than matched globally,
+   because several ul elements in the app are flex layout containers. */
+:root[lang="ar"] .prose-rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Arabic needs a larger leading and a slightly larger base size than Latin at
+   the same optical weight. letter-spacing stays at 0: tracking breaks the
+   connections between Arabic letters and makes words fall apart visually. */
+html[lang="ar"] body {
+  font-size: 1.0625rem;
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+
+html[lang="ar"] :is(h1, h2, h3) {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+html[lang="en"] body {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+html[lang="en"] :is(h1, h2) {
+  letter-spacing: -0.02em;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers, code, prices and identifiers always read left to right,
+   including inside an Arabic sentence. */
+.ltr-island {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Every numeric run is isolated left to right and rendered in tabular figures,
+   in both locales. Without the isolate, "0 / 6" shows as "6 / 0" inside an
+   Arabic sentence and a currency symbol lands on the wrong side of its amount. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--fg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Directional glyphs still point the way the text reads. */
+:root[lang="ar"] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Theme-aware icon swap.
+
+   Tailwind's `dark:` variant only tracks prefers-color-scheme, which would
+   disagree with the manual toggle. These classes follow the same three-state
+   rule as the colour tokens: system preference unless data-theme overrides it. */
+.icon-light { display: inline-flex; }
+.icon-dark  { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-light { display: none; }
+  :root:not([data-theme="light"]) .icon-dark  { display: inline-flex; }
+}
+
+:root[data-theme="dark"] .icon-light { display: none; }
+:root[data-theme="dark"] .icon-dark  { display: inline-flex; }
+
+/* Scroll reveal.
+
+   Content is visible by default. The animation is added only where the browser
+   supports scroll-driven timelines and the user has not asked for reduced
+   motion, so nothing can end up stuck at opacity 0. */
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 24%;
+    }
+  }
+}
+
+/* Skip link. Pinned and translated out of view vertically, so it never widens
+   the document the way a 1px sr-only box does in RTL. */
+.skip-link {
+  position: fixed;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 60;
+  padding: 0.5rem 1rem;
+  border-radius: var(--r-sm);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transform: translateY(-250%);
+  transition: transform 180ms ease-out;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}

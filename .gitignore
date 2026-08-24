@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Python virtualenv and bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Next.js build output.
+# .next is what the dev server serves from; .next-check is the isolated
+# directory a local verification build writes to so it cannot clobber the dev
+# server's chunks.
+.next/
+.next-check/
+out/
+build/
+dist/
+*.tsbuildinfo
+
+# Local environment files. Only .env.example belongs in the repository; every
+# real value lives in Coolify.
+.env
+.env.*
+!.env.example
+
+# Local database. The API defaults to SQLite so the stack runs with no
+# infrastructure, and that file is disposable: `make seed` rebuilds it.
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Uploaded media when storage falls back to local disk instead of S3 or R2.
+apps/api/storage/
+
+# Installed agent skills. skills-lock.json is committed so `npx skills add`
+# can reproduce them; the vendored copies themselves are not source.
+.agents/
+.claude/skills/
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~
+
+# Logs and coverage
+*.log
+npm-debug.log*
+yarn-error.log*
+coverage/
+.nyc_output/
+
+# Playwright
+test-results/
+playwright-report/

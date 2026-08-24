@@ -1,0 +1,95 @@
+# Deploy target for Coolify.
+#
+# Postgres is NOT here. Create it in Coolify as its own resource, then paste its
+# connection string into DATABASE_URL below. Keeping the database outside the
+# application stack is what lets you redeploy, roll back or rebuild the app
+# without ever putting the data at risk, and it is the only way Coolify's own
+# scheduled backups can see it.
+#
+# Coolify fills the SERVICE_* variables itself:
+#   SERVICE_FQDN_*  assigns the domain and writes the Traefik labels
+#   SERVICE_BASE64_64_*  generates and stores a secret once
+
+services:
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_FQDN_WEB_3000
+      - NODE_ENV=production
+      - API_INTERNAL_URL=http://api:8000
+      - NEXT_PUBLIC_APP_URL=${SERVICE_FQDN_WEB}
+      - NEXT_PUBLIC_CDN_URL=${CDN_URL}
+      - NEXT_PUBLIC_THAWANI_PUBLISHABLE_KEY=${THAWANI_PUBLISHABLE_KEY}
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    environment:
+      - SERVICE_FQDN_API_8000
+      - APP_ENV=production
+      - APP_URL=${SERVICE_FQDN_WEB}
+
+      # Point this at the Postgres resource you created in Coolify. Use the
+      # internal hostname Coolify shows for it, not localhost.
+      # Format: postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE
+      - DATABASE_URL=${DATABASE_URL}
+
+      - JWT_SECRET=${SERVICE_BASE64_64_JWT}
+      - JWT_ACCESS_TTL=900
+      - JWT_REFRESH_TTL=2592000
+
+      - DEFAULT_LOCALE=ar
+      - SUPPORTED_LOCALES=ar,en
+      - DEFAULT_TIMEZONE=Asia/Muscat
+      - DEFAULT_CURRENCY=OMR
+
+      # Sign-in is by emailed code, so a broken key here means nobody can log in.
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - MAIL_FROM=${MAIL_FROM}
+      # Must stay false in production: true returns the code in the HTTP response.
+      - OTP_ECHO_IN_RESPONSE=false
+
+      # Storage over the S3 API. Cloudflare R2 in production, and the object keys
+      # in the database do not change when you switch, so this is env only.
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_REGION=${S3_REGION:-auto}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_PUBLIC_BASE_URL=${CDN_URL}
+      - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE:-false}
+      - SIGNED_URL_TTL=14400
+
+      - THAWANI_BASE_URL=${THAWANI_BASE_URL}
+      - THAWANI_SECRET_KEY=${THAWANI_SECRET_KEY}
+
+      - SENTRY_DSN=${SENTRY_DSN}
+      - LOG_LEVEL=info
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request;urllib.request.urlopen('http://localhost:8000/health/ready')"
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped

@@ -1,0 +1,41 @@
+# Local infrastructure only. `web` and `api` run on the host with hot reload,
+# which is faster than rebuilding containers on every change.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: mada
+      POSTGRES_PASSWORD: mada
+      POSTGRES_DB: mada
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=ar-OM"
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mada"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: madadev
+      MINIO_ROOT_PASSWORD: madadevsecret
+    ports: ["9000:9000", "9001:9001"]
+    volumes:
+      - miniodata:/data
+
+  mailpit:
+    image: axllent/mailpit
+    ports: ["1025:1025", "8025:8025"]
+
+volumes:
+  pgdata:
+  miniodata:
