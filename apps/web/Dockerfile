@@ -24,7 +24,13 @@ RUN --network=none npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000
+# HOSTNAME must be set explicitly. Docker sets HOSTNAME to the container id, and
+# the Next standalone server binds to whatever HOSTNAME says, so it ends up
+# listening on the single interface that id resolves to. A container attached to
+# more than one network is then unreachable from every other one, which is what a
+# reverse proxy reports as "no available server" while the app logs a clean
+# startup.
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
