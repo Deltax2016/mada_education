@@ -29,7 +29,7 @@ export function CheckoutPanel({
   slug: string;
 }) {
   const router = useRouter();
-  const [state, setState] = useState<"idle" | "pending" | "paid">("idle");
+  const [state, setState] = useState<"idle" | "pending" | "paid" | "unavailable">("idle");
 
   /**
    * Mirrors the real Thawani flow: create the session, leave for the hosted
@@ -38,8 +38,25 @@ export function CheckoutPanel({
    */
   async function pay() {
     setState("pending");
-    await fetch(`/api/proxy/billing/orders/${order.orderId}/checkout`, { method: "POST" });
-    await fetch(`/api/proxy/billing/orders/${order.orderId}/settle`, { method: "POST" });
+
+    // The server decides whether a purchase is even possible here. Ignoring a
+    // refusal and polling anyway is what turns a clear "not available" into a
+    // spinner that never resolves.
+    const started = await fetch(`/api/proxy/billing/orders/${order.orderId}/checkout`, {
+      method: "POST",
+    });
+    if (!started.ok) {
+      setState("unavailable");
+      return;
+    }
+
+    const settled = await fetch(`/api/proxy/billing/orders/${order.orderId}/settle`, {
+      method: "POST",
+    });
+    if (!settled.ok) {
+      setState("unavailable");
+      return;
+    }
 
     for (let attempt = 0; attempt < 15; attempt += 1) {
       const res = await fetch(`/api/proxy/billing/orders/${order.orderId}?locale=${locale}`);
@@ -52,6 +69,23 @@ export function CheckoutPanel({
       await new Promise((resolve) => setTimeout(resolve, 1200));
     }
     setState("idle");
+  }
+
+  if (state === "unavailable") {
+    return (
+      <div className="mt-8 rounded-[var(--r-lg)] border border-border bg-surface p-7 text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-full bg-warning-soft text-warning">
+          <ShieldCheckIcon size={24} aria-hidden />
+        </span>
+        <p className="mt-4 font-semibold">{dict.checkout.unavailable}</p>
+        <p className="mx-auto mt-2 max-w-[42ch] text-sm text-fg-muted">
+          {dict.checkout.unavailableBody}
+        </p>
+        <ButtonLink href={`/${locale}/courses/${slug}`} variant="secondary" className="mt-6">
+          {dict.common.back}
+        </ButtonLink>
+      </div>
+    );
   }
 
   if (state === "paid") {

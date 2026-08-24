@@ -58,4 +58,21 @@ async def ready():
 
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
-    return {"status": "ok", "locales": settings.locales, "storage": "s3" if settings.storage_configured else "local"}
+    return {
+        "status": "ok",
+        "env": settings.app_env,
+        "locales": settings.locales,
+        "storage": "s3" if settings.storage_configured else "local",
+        "email": "resend" if settings.resend_api_key else "console",
+        # Reads what is actually wired, not what is present in the environment.
+        # Payments say "unimplemented" when credentials exist because the
+        # provider call does not, and that difference matters before launch.
+        "payments": (
+            "unimplemented"
+            if settings.payments_configured
+            else "demo"
+            if settings.demo_checkout
+            else "disabled"
+        ),
+        "loginCodeEcho": settings.otp_echo_in_response,
+    }

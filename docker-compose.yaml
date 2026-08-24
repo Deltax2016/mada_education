@@ -78,10 +78,15 @@ services:
       - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE:-false}
       - SIGNED_URL_TTL=14400
 
+      # Payments are not implemented yet. Setting these makes the app report
+      # payments as "unimplemented" and refuse checkout rather than fall through
+      # to the demo path, which would hand out paid courses for free.
       - THAWANI_BASE_URL=${THAWANI_BASE_URL}
       - THAWANI_SECRET_KEY=${THAWANI_SECRET_KEY}
+      - THAWANI_PUBLISHABLE_KEY=${THAWANI_PUBLISHABLE_KEY}
 
-      - SENTRY_DSN=${SENTRY_DSN}
+      # SENTRY_DSN is deliberately absent: nothing imports the SDK yet, and a
+      # variable the app ignores reads as configured when it is not.
       - LOG_LEVEL=info
     healthcheck:
       test:

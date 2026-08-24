@@ -10,12 +10,18 @@ ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ffmpeg \
       libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfribidi0 \
-      fonts-noto-core fonts-noto-cjk-extra \
+      fonts-noto-core \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Dependencies only. The application is not installed as a package: it runs from
+# src/ directly, and `uv pip install .` would need the sources to be present in
+# this layer, which would also throw away the dependency cache on every code
+# change.
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir uv && uv pip install --system --no-cache .
+RUN pip install --no-cache-dir uv \
+    && uv pip install --system --no-cache -r pyproject.toml
 
 COPY src ./src
 

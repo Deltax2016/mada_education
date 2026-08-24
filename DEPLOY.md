@@ -143,7 +143,35 @@ up, but it does not migrate an existing schema, so before the first real users
 arrive this needs Alembic. Until then, treat a schema change as requiring a fresh
 database.
 
-## 6. Verify
+## 6. What the app reports about itself
+
+```bash
+curl https://api.<your-domain>/health/ready
+```
+
+```json
+{
+  "status": "ok",
+  "env": "production",
+  "storage": "s3",
+  "email": "resend",
+  "payments": "disabled",
+  "loginCodeEcho": false
+}
+```
+
+This reads what is actually wired, not what is present in the environment:
+
+| Field | What it means |
+| --- | --- |
+| `storage: local` | S3 credentials are missing, media is being written to the container filesystem and will vanish on redeploy |
+| `email: console` | `RESEND_API_KEY` is missing, so sign-in codes are only logged and nobody can log in |
+| `payments: disabled` | production with no Thawani credentials, purchases refuse cleanly |
+| `payments: unimplemented` | Thawani credentials are set but the provider call is not written yet, so checkout returns 501 |
+| `payments: demo` | non-production with no credentials, checkout grants access without charging |
+| `loginCodeEcho: true` | the sign-in code is being returned in the HTTP response. Never acceptable in production |
+
+## 7. Verify
 
 ```bash
 curl https://api.<your-domain>/health/ready

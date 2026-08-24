@@ -10,6 +10,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Build servers are usually the smallest machine the project ever runs on, and
+# the static generation worker gets SIGKILLed rather than reporting an error when
+# it runs out of heap. Cap the heap explicitly so the failure cannot be silent.
+ENV NODE_OPTIONS=--max-old-space-size=3072
 RUN npm run build
 
 FROM node:22-alpine AS runner

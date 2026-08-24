@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Learner and author areas are behind sign-in and have nothing to index.
+Disallow: /ar/dashboard
+Disallow: /en/dashboard
+Disallow: /ar/teach
+Disallow: /en/teach
+Disallow: /ar/learn
+Disallow: /en/learn
+Disallow: /ar/checkout
+Disallow: /en/checkout
+Disallow: /api/

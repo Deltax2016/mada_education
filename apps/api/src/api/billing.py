@@ -16,8 +16,9 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import select
 
+from ..core.config import settings
 from ..core.deps import DB, CurrentUser, Locale
-from ..core.errors import Conflict, NotFound
+from ..core.errors import AppError, Conflict, NotFound
 from ..core.i18n import pick
 from ..core.money import Money
 from ..models import Course, Enrollment, Order
@@ -90,8 +91,9 @@ async def create_order(payload: OrderIn, db: DB, user: CurrentUser, locale: Loca
 async def checkout(order_id: str, db: DB, user: CurrentUser):
     """Creates the provider session and hands back a redirect URL.
 
-    The Thawani call is stubbed here; the shape of the flow is what matters,
-    because it is what makes the reconciliation pass possible.
+    The Thawani call is not written yet. Rather than pretend, this reports which
+    mode it is in so the client can show a demo notice or an honest "payments are
+    not available" screen instead of a spinner that never resolves.
     """
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
@@ -100,17 +102,37 @@ async def checkout(order_id: str, db: DB, user: CurrentUser):
     if order.status != "pending":
         raise Conflict("order.not_pending", f"Order is {order.status}")
 
+    if settings.payments_configured:
+        # Credentials are present, so someone expects real charges. Failing here
+        # is the only honest answer until the provider call exists; silently
+        # falling through to the demo path would hand out paid courses for free.
+        raise AppError(
+            "payment.not_implemented",
+            501,
+            "The Thawani integration is not implemented yet",
+            provider="thawani",
+        )
+
+    if not settings.demo_checkout:
+        raise AppError(
+            "payment.unavailable",
+            503,
+            "Payments are not configured on this deployment",
+        )
+
     # Real call: POST {THAWANI_BASE_URL}/checkout/session with
     #   client_reference_id = order.id
     #   products[0].unit_amount = order.total_minor   (baisa, integer)
     # then redirect to https://checkout.thawani.om/pay/{session_id}?key={publishable}
-    order.provider_session_id = f"dev_session_{order.id[:8]}"
+    order.provider_session_id = f"demo_session_{order.id[:8]}"
+    order.provider = "demo"
     await db.commit()
 
     return {
-        "provider": order.provider,
+        "provider": "demo",
         "sessionId": order.provider_session_id,
         "redirectUrl": f"/checkout/simulate?order={order.id}",
+        "isDemo": True,
     }
 
 
@@ -130,12 +152,20 @@ async def get_order(order_id: str, db: DB, user: CurrentUser, locale: Locale):
 
 @router.post("/orders/{order_id}/settle")
 async def settle(order_id: str, db: DB, user: CurrentUser):
-    """Stands in for the reconciliation worker.
+    """Marks an order paid without any money moving. Demo deployments only.
 
-    In production nothing calls this from the browser: a scheduled job polls the
-    provider for every pending order older than a few minutes and settles it.
-    The client only ever polls GET /orders/{id} and waits.
+    This is the most dangerous endpoint in the codebase: it grants paid course
+    access on request. It stands in for the reconciliation worker that will poll
+    the provider, and it must never be reachable where a real purchase is
+    possible, which is why the guard is the first thing it does.
     """
+    if not settings.demo_checkout:
+        raise AppError(
+            "payment.demo_disabled",
+            403,
+            "Simulated settlement is disabled on this deployment",
+        )
+
     result = await db.execute(select(Order).where(Order.id == order_id))
     order = result.scalar_one_or_none()
     if not order or order.user_id != user.id:

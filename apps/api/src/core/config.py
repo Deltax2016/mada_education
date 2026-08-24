@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     resend_api_key: str = ""
     mail_from: str = "Mada <onboarding@resend.dev>"
 
+    # Thawani. The integration is not written yet, so these exist to make the
+    # app aware of whether it is configured, not to make payments work.
+    thawani_base_url: str = ""
+    thawani_secret_key: str = ""
+    thawani_publishable_key: str = ""
+
     @property
     def locales(self) -> list[str]:
         return [x.strip() for x in self.supported_locales.split(",") if x.strip()]
@@ -53,6 +59,24 @@ class Settings(BaseSettings):
     @property
     def storage_configured(self) -> bool:
         return bool(self.s3_access_key and self.s3_secret_key and self.s3_bucket)
+
+    @property
+    def payments_configured(self) -> bool:
+        return bool(self.thawani_base_url and self.thawani_secret_key)
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+    @property
+    def demo_checkout(self) -> bool:
+        """Whether the simulated purchase path is allowed to run.
+
+        It hands out course access without money changing hands, so it must be
+        impossible anywhere that could be real: production, or any deployment
+        that has payment credentials.
+        """
+        return not self.payments_configured and not self.is_production
 
 
 @lru_cache

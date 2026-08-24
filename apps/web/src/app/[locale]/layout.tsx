@@ -67,6 +67,7 @@ export async function generateMetadata({
     alternates: {
       languages: { ar: "/ar", en: "/en", "x-default": "/ar" },
     },
+    icons: { icon: "/favicon.svg" },
     openGraph: {
       title: dict.common.brand,
       description: dict.home.sub,

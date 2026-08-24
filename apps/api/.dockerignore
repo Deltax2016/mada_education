@@ -1,0 +1,25 @@
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.ruff_cache
+.mypy_cache
+
+# Local SQLite database and locally stored media. Both are development state and
+# must not end up inside the image.
+*.db
+*.db-journal
+storage
+
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+*.log
+.DS_Store
+Dockerfile
+.dockerignore

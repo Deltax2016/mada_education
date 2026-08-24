@@ -1,0 +1,28 @@
+# Without this, COPY . . drags roughly 870 MB of local build output into the
+# build context: node_modules, the dev server's .next, and .next-check from the
+# local verification build. That is what starves the Next build worker of memory
+# and gets it killed.
+node_modules
+.next
+.next-check
+out
+build
+dist
+
+# Local environment. The image must take its configuration from the runtime
+# environment, never from a file baked in at build time.
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+*.log
+*.tsbuildinfo
+coverage
+test-results
+playwright-report
+.DS_Store
+Dockerfile
+.dockerignore
+README.md

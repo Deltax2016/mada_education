@@ -189,7 +189,9 @@
     "processingBody": "Do not close this page. We are checking the payment status with the provider.",
     "success": "Paid. The course is available to you now.",
     "startLearning": "Start learning",
-    "simulateNote": "Demo environment: no money is actually charged."
+    "simulateNote": "Demo environment: no money is actually charged.",
+    "unavailable": "Payment is not available yet",
+    "unavailableBody": "The payment gateway is not switched on for this deployment. Contact us and we will grant access manually."
   },
   "verify": {
     "title": "Verify a certificate",
