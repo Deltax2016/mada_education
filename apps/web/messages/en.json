@@ -308,5 +308,22 @@
     "backToCourses": "Back to my courses",
     "notInstructor": "This area is for instructors",
     "notInstructorBody": "Create an instructor profile first. It takes a minute."
+  },
+  "media": {
+    "uploadCover": "Upload a cover image",
+    "replaceCover": "Replace the cover",
+    "uploadVideo": "Upload the lesson video",
+    "replaceVideo": "Replace the video",
+    "removeVideo": "Remove the video",
+    "uploadImage": "Upload an image",
+    "videoAttached": "Video attached",
+    "blockImage": "Image",
+    "imageAlt": "Description for screen readers",
+    "imageCaption": "Caption below the image, optional",
+    "tooLarge": "The file is over the size limit",
+    "wrongType": "That file type is not supported",
+    "failed": "Could not upload the file",
+    "storageUnreachable": "Could not reach storage. If this keeps happening it is our upload configuration, not your file.",
+    "coverHint": "A 16:9 image looks best in the catalogue."
   }
 }

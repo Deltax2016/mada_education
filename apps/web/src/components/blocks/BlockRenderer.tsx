@@ -125,7 +125,32 @@ function Table({ block }: Props) {
   );
 }
 
+function ImageBlock({ block }: Props) {
+  const src = block.data.src as string;
+  const alt = (block.data.alt as string) ?? "";
+  const caption = block.data.caption as string | undefined;
+  if (!src) return null;
+  return (
+    <figure className="mt-6">
+      {/* A plain img rather than next/image: these point at a bucket whose
+          hostname is configured per deployment, and next/image would refuse any
+          host not listed at build time. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className="w-full rounded-[var(--r-md)] border border-border"
+      />
+      {caption ? (
+        <figcaption className="mt-2 text-sm text-fg-subtle">{caption}</figcaption>
+      ) : null}
+    </figure>
+  );
+}
+
 const registry: Record<string, (props: Props) => React.ReactElement | null> = {
+  image: ImageBlock,
   heading: Heading,
   paragraph: Paragraph,
   list: List,

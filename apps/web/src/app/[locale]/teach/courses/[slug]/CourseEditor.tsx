@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Field, inputClass } from "@/components/ui/Field";
+import { MediaUpload } from "@/components/media/MediaUpload";
 import { formatNumber, type Dict, type Locale } from "@/lib/i18n";
 
 export type EditorLesson = {
@@ -32,6 +33,7 @@ export type EditorLesson = {
 export type EditorCourse = {
   slug: string;
   status: string;
+  coverUrl: string | null;
   title: Record<string, string>;
   subtitle: Record<string, string>;
   isFree: boolean;
@@ -145,6 +147,16 @@ export function CourseEditor({
     await refresh();
   }
 
+  async function setCover({ url }: { url: string | null }) {
+    if (!url) return;
+    await call(`/teach/courses/${course.slug}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ coverUrl: url }),
+    });
+    await refresh();
+  }
+
   const lessonCount = course.modules.reduce((n, m) => n + m.lessons.length, 0);
 
   return (
@@ -216,6 +228,29 @@ export function CourseEditor({
           </ul>
         </div>
       ) : null}
+
+      <section className="mt-8 flex flex-col gap-4 rounded-[var(--r-lg)] border border-border bg-surface p-5 sm:flex-row sm:items-center">
+        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden rounded-[var(--r-md)] bg-surface-2 sm:w-52">
+          {course.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={course.coverUrl} alt="" className="absolute inset-0 size-full object-cover" />
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold">
+            {course.coverUrl ? dict.media.replaceCover : dict.media.uploadCover}
+          </h2>
+          <p className="mt-1 text-xs text-fg-subtle">{dict.media.coverHint}</p>
+          <div className="mt-3">
+            <MediaUpload
+              kind="image"
+              dict={dict}
+              label={course.coverUrl ? dict.media.replaceCover : dict.media.uploadCover}
+              onUploaded={setCover}
+            />
+          </div>
+        </div>
+      </section>
 
       <h2 className="mt-10 text-lg font-semibold">{dict.teach.curriculum}</h2>
 

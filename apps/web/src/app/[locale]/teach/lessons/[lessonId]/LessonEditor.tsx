@@ -7,8 +7,11 @@ import {
   CaretDownIcon,
   CaretUpIcon,
   CheckIcon,
+  FilmSlateIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
+
+import { MediaUpload } from "@/components/media/MediaUpload";
 
 import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
@@ -23,16 +26,18 @@ export type LessonContent = {
   durationMinutes: number;
   isPreview: boolean;
   type: string;
+  video: { assetId: string; status: string; durationSeconds: number; sizeBytes: number } | null;
   blocks: Record<string, Block[]>;
 };
 
-const BLOCK_TYPES = ["paragraph", "heading", "list", "callout"] as const;
+const BLOCK_TYPES = ["paragraph", "heading", "list", "callout", "image"] as const;
 
 function emptyBlock(type: string, index: number): Block {
   const id = `b${index + 1}-${Math.round(performance.now())}`;
   if (type === "heading") return { id, type, data: { level: 2, text: "" } };
   if (type === "list") return { id, type, data: { ordered: false, items: [] } };
   if (type === "callout") return { id, type, data: { variant: "info", text: "" } };
+  if (type === "image") return { id, type, data: { src: "", alt: "", caption: "" } };
   return { id, type: "paragraph", data: { text: "" } };
 }
 
@@ -50,6 +55,27 @@ export function LessonEditor({
   const [blocks, setBlocks] = useState<Record<string, Block[]>>(initial.blocks);
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [video, setVideo] = useState(initial.video);
+
+  async function attachVideo({ assetId }: { assetId: string }) {
+    await fetch(`/api/proxy/teach/lessons/${initial.lessonId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mediaAssetId: assetId }),
+    });
+    setVideo({ assetId, status: "ready", durationSeconds: 0, sizeBytes: 0 });
+    router.refresh();
+  }
+
+  async function detachVideo() {
+    await fetch(`/api/proxy/teach/lessons/${initial.lessonId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mediaAssetId: "" }),
+    });
+    setVideo(null);
+    router.refresh();
+  }
 
   const current = blocks[tab] ?? [];
 
@@ -78,6 +104,7 @@ export function LessonEditor({
       // lesson that looks written but is not.
       const cleaned = current.filter((b) => {
         if (b.type === "list") return ((b.data.items as string[]) ?? []).length > 0;
+        if (b.type === "image") return String(b.data.src ?? "").length > 0;
         return String(b.data.text ?? "").trim().length > 0;
       });
       const res = await fetch(
@@ -112,6 +139,34 @@ export function LessonEditor({
         {initial.title[locale] || initial.title.ar}
       </h1>
       <p className="mt-1 text-sm text-fg-subtle">{dict.teach.contentTitle}</p>
+
+      <section className="mt-7 rounded-[var(--r-lg)] border border-border bg-surface p-5">
+        <h2 className="text-sm font-semibold">{dict.media.uploadVideo}</h2>
+        {video ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-sm text-primary">
+              <FilmSlateIcon size={18} aria-hidden />
+              {dict.media.videoAttached}
+              {video.sizeBytes ? (
+                <span className="tnum text-fg-subtle">
+                  {Math.max(1, Math.round(video.sizeBytes / 1_000_000))} MB
+                </span>
+              ) : null}
+            </span>
+            <Button type="button" variant="ghost" size="sm" onClick={detachVideo}>
+              {dict.media.removeVideo}
+            </Button>
+          </div>
+        ) : null}
+        <div className="mt-3">
+          <MediaUpload
+            kind="video"
+            dict={dict}
+            label={video ? dict.media.replaceVideo : dict.media.uploadVideo}
+            onUploaded={attachVideo}
+          />
+        </div>
+      </section>
 
       <div
         role="tablist"
@@ -215,6 +270,41 @@ export function LessonEditor({
                   })
                 }
               />
+            ) : null}
+
+            {block.type === "image" ? (
+              <div className="grid gap-3">
+                {block.data.src ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={String(block.data.src)}
+                    alt=""
+                    className="max-h-56 w-full rounded-[var(--r-md)] border border-border object-cover"
+                  />
+                ) : null}
+                <MediaUpload
+                  kind="image"
+                  dict={dict}
+                  label={dict.media.uploadImage}
+                  onUploaded={({ url }) => patch(index, { src: url ?? "" })}
+                />
+                <input
+                  aria-label={dict.media.imageAlt}
+                  placeholder={dict.media.imageAlt}
+                  className={inputClass}
+                  dir={tab === "ar" ? "rtl" : "ltr"}
+                  value={String(block.data.alt ?? "")}
+                  onChange={(e) => patch(index, { alt: e.target.value })}
+                />
+                <input
+                  aria-label={dict.media.imageCaption}
+                  placeholder={dict.media.imageCaption}
+                  className={inputClass}
+                  dir={tab === "ar" ? "rtl" : "ltr"}
+                  value={String(block.data.caption ?? "")}
+                  onChange={(e) => patch(index, { caption: e.target.value })}
+                />
+              </div>
             ) : null}
 
             {block.type === "callout" ? (

@@ -26,6 +26,7 @@ from ..models import (
     Lesson,
     LessonProgress,
     LessonVersion,
+    MediaAsset,
     Module,
     Review,
     User,
@@ -577,6 +578,9 @@ class LessonPatch(BaseModel):
     durationMinutes: int | None = None
     isPreview: bool | None = None
     type: str | None = None
+    # Empty string detaches, which is how an author removes a video without
+    # deleting the lesson around it.
+    mediaAssetId: str | None = None
 
 
 @router.patch("/lessons/{lesson_id}")
@@ -599,6 +603,25 @@ async def update_lesson(lesson_id: str, payload: LessonPatch, db: DB, user: Curr
         lesson.is_preview = payload.isPreview
     if payload.type:
         lesson.type = payload.type
+
+    if payload.mediaAssetId is not None:
+        if payload.mediaAssetId == "":
+            lesson.media_asset_id = None
+            if lesson.type == "video":
+                lesson.type = "content"
+        else:
+            asset = (
+                await db.execute(
+                    select(MediaAsset).where(MediaAsset.id == payload.mediaAssetId)
+                )
+            ).scalar_one_or_none()
+            if asset is None or asset.kind != "video":
+                raise AppError("media.not_a_video", 422, "That asset is not a video")
+            lesson.media_asset_id = asset.id
+            lesson.type = "video"
+            if not payload.durationMinutes and asset.duration_seconds:
+                lesson.duration_minutes = max(1, round(asset.duration_seconds / 60))
+
     await db.commit()
     return {"ok": True}
 
@@ -630,12 +653,28 @@ async def get_lesson_content(lesson_id: str, db: DB, user: CurrentUser, locale: 
     for version in versions.scalars():
         blocks[version.locale] = version.content or []
 
+    video = None
+    if lesson.media_asset_id:
+        asset = (
+            await db.execute(select(MediaAsset).where(MediaAsset.id == lesson.media_asset_id))
+        ).scalar_one_or_none()
+        if asset:
+            # No filename: MediaAsset has no such column, and adding one now
+            # would need a migration against a database that is already live.
+            video = {
+                "assetId": asset.id,
+                "status": asset.status,
+                "durationSeconds": asset.duration_seconds,
+                "sizeBytes": asset.size_bytes,
+            }
+
     return {
         "lessonId": lesson.id,
         "title": lesson.title,
         "durationMinutes": lesson.duration_minutes,
         "isPreview": lesson.is_preview,
         "type": lesson.type,
+        "video": video,
         "blocks": {loc: blocks.get(loc, []) for loc in LOCALES},
     }
 

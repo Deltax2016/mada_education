@@ -70,14 +70,26 @@ async def create_upload(payload: UploadRequest, db: DB, user: CurrentUser):
 
 @router.post("/uploads/{asset_id}/complete")
 async def complete_upload(asset_id: str, db: DB, user: CurrentUser):
+    if not ({"admin", "instructor"} & set(user.roles or [])):
+        raise Forbidden(detail="Only staff can upload media")
+
     result = await db.execute(select(MediaAsset).where(MediaAsset.id == asset_id))
     asset = result.scalar_one_or_none()
     if not asset:
         raise NotFound("Asset not found")
-    # A real deployment queues probe + poster + transcode here.
+    # A real deployment queues probe, poster and transcode here.
     asset.status = "ready"
     await db.commit()
-    return {"assetId": asset.id, "status": asset.status}
+
+    # Public kinds get a stable URL to paste into a block or a cover field.
+    # Private kinds deliberately do not: video is only ever reached through
+    # /playback, which checks access and signs a short lived link.
+    return {
+        "assetId": asset.id,
+        "status": asset.status,
+        "kind": asset.kind,
+        "url": storage.public_url(asset.storage_key) if asset.kind == "image" else None,
+    }
 
 
 @router.get("/assets/{asset_id}/playback")

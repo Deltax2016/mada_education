@@ -158,6 +158,29 @@ not for production. It is fine for a first look, not for launch.
 | `S3_PUBLIC_BASE_URL`, `CDN_URL` | `https://cdn.mada-tech.space` |
 | `S3_FORCE_PATH_STYLE` | `false` for R2, `true` for MinIO |
 
+### CORS on the bucket
+
+The browser uploads straight to the bucket, so R2 must allow it. Without this the
+upload fails with a generic network error and nothing appears in any log, because
+the browser blocks the request before it is sent.
+
+On the R2 bucket, **Settings → CORS Policy**:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://education.apps.mada-tech.space"],
+    "AllowedMethods": ["PUT", "GET", "HEAD"],
+    "AllowedHeaders": ["content-type"],
+    "ExposeHeaders": ["etag"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Both buckets need it: the private one for video, the public one for covers and
+lesson images.
+
 Verify before trusting it:
 
 ```bash
