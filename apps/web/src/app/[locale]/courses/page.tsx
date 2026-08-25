@@ -42,7 +42,7 @@ export default async function CatalogPage({
 
   const [result, categories] = await Promise.all([
     api<{ data: CourseDto[]; total: number }>(`/catalog/courses${suffix}`, { locale }).catch(
-      () => ({ data: [], total: 0 }),
+      () => null,
     ),
     api<Category[]>("/catalog/categories", { locale, revalidate: 300 }).catch(() => []),
   ]);
@@ -118,11 +118,17 @@ export default async function CatalogPage({
         })}
       </nav>
 
-      <p className="mt-8 text-sm text-fg-subtle">
-        {plural(locale, result.total, dict.catalog.found)}
-      </p>
+      {result ? (
+        <p className="mt-8 text-sm text-fg-subtle">
+          {plural(locale, result.total, dict.catalog.found)}
+        </p>
+      ) : null}
 
-      {result.data.length === 0 ? (
+      {result === null ? (
+        <div className="mt-8">
+          <Empty title={dict.catalog.unreachable} body={dict.catalog.unreachableBody} />
+        </div>
+      ) : result.data.length === 0 ? (
         <div className="mt-6">
           <Empty
             title={dict.catalog.empty}

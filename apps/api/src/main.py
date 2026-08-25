@@ -162,10 +162,20 @@ async def live():
 
 @app.get("/health/ready")
 async def ready():
-    from sqlalchemy import text
+    from sqlalchemy import func, select, text
+
+    from .content_loader import CONTENT_DIR, read_content
+    from .models import Course
 
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
+        published = await conn.execute(
+            select(func.count()).select_from(Course.__table__).where(
+                Course.__table__.c.status == "published"
+            )
+        )
+        course_count = published.scalar_one()
+
     return {
         "status": "ok",
         "env": settings.app_env,
@@ -183,4 +193,12 @@ async def ready():
             else "disabled"
         ),
         "loginCodeEcho": settings.otp_echo_in_response,
+        # The catalogue and the sender address are the two things that look
+        # broken from outside without saying why, so they are reported here
+        # rather than requiring a shell in the container.
+        "coursesPublished": course_count,
+        "contentAvailable": len(read_content()),
+        "contentDir": str(CONTENT_DIR) if CONTENT_DIR.exists() else "MISSING",
+        # Not a secret, and the usual failure is that it arrived mangled or empty.
+        "mailFrom": settings.mail_from,
     }

@@ -129,6 +129,20 @@ class Settings(BaseSettings):
     def locales(self) -> list[str]:
         return [x.strip() for x in self.supported_locales.split(",") if x.strip()]
 
+    @model_validator(mode="after")
+    def _blank_env_falls_back(self):
+        """An env var that is present but empty must not beat the default.
+
+        Coolify writes every declared variable into the container, so an unset
+        one arrives as "" rather than being absent, and pydantic treats that as a
+        deliberate value. For the sender address the result is a request to the
+        provider with an empty from field, which comes back as a validation error
+        that says nothing about the real cause.
+        """
+        if not self.mail_from.strip():
+            object.__setattr__(self, "mail_from", "Mada <onboarding@resend.dev>")
+        return self
+
     @property
     def storage_configured(self) -> bool:
         return bool(self.s3_access_key and self.s3_secret_key and self.s3_bucket)

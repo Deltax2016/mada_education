@@ -79,7 +79,9 @@
     "studentCount": {
       "one": "# learner",
       "other": "# learners"
-    }
+    },
+    "unreachable": "Could not load the courses",
+    "unreachableBody": "The catalogue did not answer. This is on us, not on your search. Try again shortly."
   },
   "course": {
     "about": "About this course",
