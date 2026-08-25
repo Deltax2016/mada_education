@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from ..core.deps import DB, CurrentUser, Locale
+from ..core import gamification
 from ..core.errors import AppError, Conflict, NotFound
 from ..core.i18n import ar_normalize, pick
 from ..models import Question, QuestionOption, Quiz, QuizAnswer, QuizAttempt
@@ -242,6 +243,14 @@ async def submit_attempt(attempt_id: str, db: DB, user: CurrentUser, locale: Loc
     attempt.passed = attempt.score_percent >= quiz.passing_score
     attempt.submitted_at = datetime.now(timezone.utc)
     attempt.status = "graded"
+
+    # Keyed by quiz rather than attempt: retaking a quiz is how learning works,
+    # farming the same points on every retake is not.
+    if attempt.passed:
+        await gamification.award(db, user.id, "quiz", attempt.quiz_id)
+        if attempt.score_percent >= 100:
+            await gamification.award(db, user.id, "quiz_perfect", attempt.quiz_id)
+
     await db.commit()
 
     if expired:

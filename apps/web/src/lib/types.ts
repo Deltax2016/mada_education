@@ -179,3 +179,34 @@ export type Me = {
   locale: string;
   roles: string[];
 };
+
+export type Achievement = {
+  code: string;
+  icon: string;
+  name: string;
+  hint: string;
+  target: number;
+  progress: number;
+  unlockedAt: string | null;
+};
+
+export type LearnerStats = {
+  totalXp: number;
+  level: number;
+  title: string;
+  levelFloor: number;
+  levelCeiling: number | null;
+  intoLevel: number;
+  levelSpan: number | null;
+  streakDays: number;
+  longestStreak: number;
+  activeDays: number;
+  lessonsCompleted: number;
+  minutesLearned: number;
+  quizzesPassed: number;
+  perfectQuizzes: number;
+  coursesCompleted: number;
+  achievements: Achievement[];
+  achievementsUnlocked: number;
+  achievementsTotal: number;
+};

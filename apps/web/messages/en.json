@@ -328,5 +328,20 @@
     "failed": "Could not upload the file",
     "storageUnreachable": "Could not reach storage. If this keeps happening it is our upload configuration, not your file.",
     "coverHint": "A 16:9 image looks best in the catalogue."
+  },
+  "game": {
+    "level": "Level",
+    "toNext": "points to the next level",
+    "maxLevel": "Top level",
+    "streak": "day streak",
+    "lessons": "lessons",
+    "minutes": "minutes",
+    "quizzes": "quizzes",
+    "courses": "courses",
+    "title": "My progress",
+    "achievements": "Achievements",
+    "achievementsOf": "of",
+    "empty": "Start a lesson and your first points show up here",
+    "viewProgress": "My progress"
   }
 }

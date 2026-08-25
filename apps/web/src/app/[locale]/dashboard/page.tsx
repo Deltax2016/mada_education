@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { CertificateIcon, GraduationCapIcon } from "@phosphor-icons/react/dist/ssr";
+import { CaretRightIcon, CertificateIcon, GraduationCapIcon } from "@phosphor-icons/react/dist/ssr";
+
+import { LevelCard } from "@/components/game/LevelCard";
 
 import { ButtonLink } from "@/components/ui/Button";
 import { CourseCover } from "@/components/CourseCover";
@@ -8,7 +10,7 @@ import { Empty } from "@/components/ui/Empty";
 import { Progress } from "@/components/ui/Progress";
 import { api } from "@/lib/api";
 import { formatDate, formatRatio, getDict, isLocale, type Locale } from "@/lib/i18n";
-import type { Certificate, MyCourse } from "@/lib/types";
+import type { Certificate, LearnerStats, MyCourse } from "@/lib/types";
 
 export default async function DashboardPage({
   params,
@@ -32,9 +34,12 @@ export default async function DashboardPage({
     courses.find((c) => c.status !== "completed") ??
     null;
 
-  const certificates = await api<{ data: Certificate[] }>("/learn/certificates", { locale })
-    .then((r) => r.data)
-    .catch(() => []);
+  const [certificates, stats] = await Promise.all([
+    api<{ data: Certificate[] }>("/learn/certificates", { locale })
+      .then((r) => r.data)
+      .catch(() => []),
+    api<LearnerStats>("/learn/stats", { locale }).catch(() => null),
+  ]);
 
   return (
     <div className="mx-auto max-w-[1240px] px-5 py-12 sm:px-8 lg:py-16">
@@ -43,6 +48,19 @@ export default async function DashboardPage({
           {dict.dashboard.title}
         </h1>
       </header>
+
+      {stats ? (
+        <div className="mt-8">
+          <LevelCard stats={stats} locale={locale} dict={dict} />
+          <Link
+            href={`/${locale}/progress`}
+            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
+            {dict.game.achievements}
+            <CaretRightIcon size={14} aria-hidden className="ar:rotate-180" />
+          </Link>
+        </div>
+      ) : null}
 
       {resume ? (
         // The single most useful thing on this page is the way back into the one

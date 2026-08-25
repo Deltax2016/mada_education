@@ -419,3 +419,32 @@ class Review(Base):
     user: Mapped["User"] = relationship(lazy="selectin")
 
     __table_args__ = (UniqueConstraint("course_id", "user_id", name="uq_review_course_user"),)
+
+
+class XpEvent(Base):
+    """One row per thing the student earned points for.
+
+    A ledger rather than a running total: the same lesson finished twice must
+    not pay twice, and the unique constraint is what guarantees it instead of a
+    check the caller might forget.
+    """
+
+    __tablename__ = "xp_events"
+    __table_args__ = (UniqueConstraint("user_id", "kind", "ref_id", name="uq_xp_once"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(30))
+    ref_id: Mapped[str] = mapped_column(String(36))
+    amount: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class UserAchievement(Base):
+    __tablename__ = "user_achievements"
+    __table_args__ = (UniqueConstraint("user_id", "code", name="uq_achievement_once"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    code: Mapped[str] = mapped_column(String(40))
+    unlocked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

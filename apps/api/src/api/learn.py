@@ -11,6 +11,7 @@ from ..core.deps import DB, CurrentUser, Locale, OptionalUser
 from ..core.errors import AppError, Forbidden, NotFound
 from ..core.i18n import pick, resolve
 from ..core.storage import storage
+from ..core import gamification
 from ..models import (
     Certificate,
     Course,
@@ -36,8 +37,48 @@ async def _progress_map(db: DB, user_id: str, course_id: str) -> dict[str, Lesso
     return {p.lesson_id: p for p in result.scalars()}
 
 
+async def ensure_enrolled(db: DB, user_id: str, course_id: str) -> Enrollment:
+    """Opening a lesson is what starting a course means.
+
+    Enrolment used to happen only on purchase, so anyone working through a free
+    course accumulated progress that nothing on the site would show them. The
+    record follows the act of learning instead of a button nobody pressed.
+    """
+    result = await db.execute(
+        select(Enrollment).where(
+            Enrollment.user_id == user_id, Enrollment.course_id == course_id
+        )
+    )
+    enrollment = result.scalar_one_or_none()
+    if enrollment:
+        return enrollment
+    enrollment = Enrollment(user_id=user_id, course_id=course_id, source="progress", locale="ar")
+    db.add(enrollment)
+    await db.flush()
+    return enrollment
+
+
 @router.get("/courses")
 async def my_courses(db: DB, user: CurrentUser, locale: Locale):
+    # Progress recorded before enrolment existed still counts as learning, so
+    # anything with progress and no record gets one now rather than staying
+    # invisible until the student starts over.
+    orphans = await db.execute(
+        select(LessonProgress.course_id)
+        .outerjoin(
+            Enrollment,
+            (Enrollment.course_id == LessonProgress.course_id)
+            & (Enrollment.user_id == LessonProgress.user_id),
+        )
+        .where(LessonProgress.user_id == user.id, Enrollment.id.is_(None))
+        .distinct()
+    )
+    healed = list(orphans.scalars())
+    for course_id in healed:
+        await ensure_enrolled(db, user.id, course_id)
+    if healed:
+        await db.commit()
+
     result = await db.execute(
         select(Enrollment, Course)
         .join(Course, Course.id == Enrollment.course_id)
@@ -277,6 +318,7 @@ async def save_progress(lesson_id: str, payload: ProgressIn, db: DB, user: Curre
             user_id=user.id, lesson_id=lesson_id, course_id=lesson.course_id
         )
         db.add(progress)
+        await ensure_enrolled(db, user.id, lesson.course_id)
 
     progress.last_position_seconds = max(progress.last_position_seconds, payload.positionSeconds)
     progress.watched_seconds += min(payload.watchedDelta, 30)
@@ -289,6 +331,7 @@ async def save_progress(lesson_id: str, payload: ProgressIn, db: DB, user: Curre
         if progress.progress_percent >= COMPLETION_THRESHOLD * 100 and progress.status != "completed":
             progress.status = "completed"
             progress.completed_at = datetime.now(timezone.utc)
+            await gamification.award(db, user.id, "lesson", lesson_id)
 
     await db.commit()
     return {"status": progress.status, "progressPercent": round(progress.progress_percent)}
@@ -312,14 +355,24 @@ async def complete_lesson(lesson_id: str, db: DB, user: CurrentUser, locale: Loc
             user_id=user.id, lesson_id=lesson_id, course_id=lesson.course_id
         )
         db.add(progress)
+    already_done = progress.status == "completed"
     progress.status = "completed"
     progress.progress_percent = 100
     progress.completed_at = datetime.now(timezone.utc)
+    if not already_done:
+        await gamification.award(db, user.id, "lesson", lesson_id)
+    await ensure_enrolled(db, user.id, lesson.course_id)
     await db.flush()
 
     certificate = await _maybe_issue_certificate(db, user, lesson.course_id, locale)
+    if certificate:
+        await gamification.award(db, user.id, "course", lesson.course_id)
+        await gamification.award(db, user.id, "certificate", certificate["serial"])
+    earned = await gamification.sync_achievements(
+        db, user.id, await gamification.stats(db, user.id, locale)
+    )
     await db.commit()
-    return {"status": "completed", "certificate": certificate}
+    return {"status": "completed", "certificate": certificate, "achievements": earned}
 
 
 async def _maybe_issue_certificate(db, user, course_id: str, locale: str) -> dict | None:
@@ -367,6 +420,14 @@ async def _maybe_issue_certificate(db, user, course_id: str, locale: str) -> dic
         enrollment.progress_percent = 100
 
     return {"serial": serial, "isNew": True}
+
+
+@router.get("/stats")
+async def my_stats(db: DB, user: CurrentUser, locale: Locale):
+    """Everything the progress screen shows."""
+    profile = await gamification.profile(db, user.id, locale)
+    await db.commit()
+    return profile
 
 
 @router.get("/certificates")
