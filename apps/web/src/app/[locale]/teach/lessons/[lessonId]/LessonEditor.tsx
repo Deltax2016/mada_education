@@ -4,21 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowRightIcon,
-  CaretDownIcon,
-  CaretUpIcon,
   CheckIcon,
   FilmSlateIcon,
-  TrashIcon,
 } from "@phosphor-icons/react";
 
+import { BlockCanvas, type Block } from "@/components/editor/BlockCanvas";
 import { MediaUpload } from "@/components/media/MediaUpload";
 
 import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
-import { Field, inputClass, selectClass, textareaClass } from "@/components/ui/Field";
 import { LOCALES, type Dict, type Locale } from "@/lib/i18n";
-
-type Block = { id: string; type: string; data: Record<string, unknown> };
+import { uploadToStorage } from "@/lib/upload";
 
 export type LessonContent = {
   lessonId: string;
@@ -29,17 +25,6 @@ export type LessonContent = {
   video: { assetId: string; status: string; durationSeconds: number; sizeBytes: number } | null;
   blocks: Record<string, Block[]>;
 };
-
-const BLOCK_TYPES = ["paragraph", "heading", "list", "callout", "image"] as const;
-
-function emptyBlock(type: string, index: number): Block {
-  const id = `b${index + 1}-${Math.round(performance.now())}`;
-  if (type === "heading") return { id, type, data: { level: 2, text: "" } };
-  if (type === "list") return { id, type, data: { ordered: false, items: [] } };
-  if (type === "callout") return { id, type, data: { variant: "info", text: "" } };
-  if (type === "image") return { id, type, data: { src: "", alt: "", caption: "" } };
-  return { id, type: "paragraph", data: { text: "" } };
-}
 
 export function LessonEditor({
   locale,
@@ -79,21 +64,18 @@ export function LessonEditor({
 
   const current = blocks[tab] ?? [];
 
+  /** The canvas only needs a URL back; failures surface as a missing image. */
+  async function uploadImage(file: File) {
+    try {
+      return (await uploadToStorage("image", file)).url;
+    } catch {
+      return null;
+    }
+  }
+
   function update(next: Block[]) {
     setBlocks((b) => ({ ...b, [tab]: next }));
     setSaved(false);
-  }
-
-  function patch(index: number, data: Record<string, unknown>) {
-    update(current.map((b, i) => (i === index ? { ...b, data: { ...b.data, ...data } } : b)));
-  }
-
-  function move(index: number, delta: number) {
-    const target = index + delta;
-    if (target < 0 || target >= current.length) return;
-    const next = [...current];
-    [next[index], next[target]] = [next[target], next[index]];
-    update(next);
   }
 
   async function save() {
@@ -193,155 +175,21 @@ export function LessonEditor({
         ))}
       </div>
 
-      <div className="mt-6 grid gap-4">
-        {current.length === 0 ? (
+      {current.length === 0 ? (
+        <div className="mt-6">
           <Empty title={dict.teach.noBlocks} body={dict.teach.noBlocksBody} />
-        ) : null}
+        </div>
+      ) : null}
 
-        {current.map((block, index) => (
-          <div
-            key={block.id}
-            className="rounded-[var(--r-lg)] border border-border bg-surface p-4 sm:p-5"
-          >
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-fg-subtle">
-                {dict.teach[
-                  `block${block.type[0].toUpperCase()}${block.type.slice(1)}` as "blockParagraph"
-                ] ?? block.type}
-              </span>
-              <div className="flex gap-1">
-                <button onClick={() => move(index, -1)} aria-label={dict.teach.moveUp}
-                        className="grid size-8 cursor-pointer place-items-center rounded-[var(--r-sm)] text-fg-subtle hover:bg-surface-2 hover:text-fg">
-                  <CaretUpIcon size={15} aria-hidden />
-                </button>
-                <button onClick={() => move(index, 1)} aria-label={dict.teach.moveDown}
-                        className="grid size-8 cursor-pointer place-items-center rounded-[var(--r-sm)] text-fg-subtle hover:bg-surface-2 hover:text-fg">
-                  <CaretDownIcon size={15} aria-hidden />
-                </button>
-                <button onClick={() => update(current.filter((_, i) => i !== index))}
-                        aria-label={dict.teach.removeBlock}
-                        className="grid size-8 cursor-pointer place-items-center rounded-[var(--r-sm)] text-fg-subtle hover:bg-danger-soft hover:text-danger">
-                  <TrashIcon size={15} aria-hidden />
-                </button>
-              </div>
-            </div>
-
-            {block.type === "heading" ? (
-              <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
-                <select
-                  aria-label={dict.teach.blockVariant}
-                  className={selectClass}
-                  value={String(block.data.level ?? 2)}
-                  onChange={(e) => patch(index, { level: Number(e.target.value) })}
-                >
-                  <option value="2">H2</option>
-                  <option value="3">H3</option>
-                </select>
-                <input
-                  aria-label={dict.teach.blockText}
-                  className={inputClass}
-                  dir={tab === "ar" ? "rtl" : "ltr"}
-                  value={String(block.data.text ?? "")}
-                  onChange={(e) => patch(index, { text: e.target.value })}
-                />
-              </div>
-            ) : null}
-
-            {block.type === "paragraph" ? (
-              <textarea
-                aria-label={dict.teach.blockText}
-                className={textareaClass}
-                dir={tab === "ar" ? "rtl" : "ltr"}
-                value={String(block.data.text ?? "")}
-                onChange={(e) => patch(index, { text: e.target.value })}
-              />
-            ) : null}
-
-            {block.type === "list" ? (
-              <textarea
-                aria-label={dict.teach.blockItems}
-                placeholder={dict.teach.blockItems}
-                className={textareaClass}
-                dir={tab === "ar" ? "rtl" : "ltr"}
-                value={((block.data.items as string[]) ?? []).join("\n")}
-                onChange={(e) =>
-                  patch(index, {
-                    items: e.target.value.split("\n").filter((line) => line.trim().length),
-                  })
-                }
-              />
-            ) : null}
-
-            {block.type === "image" ? (
-              <div className="grid gap-3">
-                {block.data.src ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={String(block.data.src)}
-                    alt=""
-                    className="max-h-56 w-full rounded-[var(--r-md)] border border-border object-cover"
-                  />
-                ) : null}
-                <MediaUpload
-                  kind="image"
-                  dict={dict}
-                  label={dict.media.uploadImage}
-                  onUploaded={({ url }) => patch(index, { src: url ?? "" })}
-                />
-                <input
-                  aria-label={dict.media.imageAlt}
-                  placeholder={dict.media.imageAlt}
-                  className={inputClass}
-                  dir={tab === "ar" ? "rtl" : "ltr"}
-                  value={String(block.data.alt ?? "")}
-                  onChange={(e) => patch(index, { alt: e.target.value })}
-                />
-                <input
-                  aria-label={dict.media.imageCaption}
-                  placeholder={dict.media.imageCaption}
-                  className={inputClass}
-                  dir={tab === "ar" ? "rtl" : "ltr"}
-                  value={String(block.data.caption ?? "")}
-                  onChange={(e) => patch(index, { caption: e.target.value })}
-                />
-              </div>
-            ) : null}
-
-            {block.type === "callout" ? (
-              <div className="grid gap-3">
-                <select
-                  aria-label={dict.teach.blockVariant}
-                  className={selectClass}
-                  value={String(block.data.variant ?? "info")}
-                  onChange={(e) => patch(index, { variant: e.target.value })}
-                >
-                  <option value="info">{dict.teach.variantInfo}</option>
-                  <option value="warning">{dict.teach.variantWarning}</option>
-                </select>
-                <textarea
-                  aria-label={dict.teach.blockText}
-                  className={textareaClass}
-                  dir={tab === "ar" ? "rtl" : "ltr"}
-                  value={String(block.data.text ?? "")}
-                  onChange={(e) => patch(index, { text: e.target.value })}
-                />
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-2.5">
-        {BLOCK_TYPES.map((type) => (
-          <Button
-            key={type}
-            variant="secondary"
-            size="sm"
-            onClick={() => update([...current, emptyBlock(type, current.length)])}
-          >
-            {dict.teach[`block${type[0].toUpperCase()}${type.slice(1)}` as "blockParagraph"]}
-          </Button>
-        ))}
+      <div className="mt-4">
+        <BlockCanvas
+          key={tab}
+          blocks={current}
+          onChange={update}
+          locale={tab as Locale}
+          dict={dict}
+          onUploadImage={uploadImage}
+        />
       </div>
 
       <div className="sticky bottom-0 mt-8 flex items-center gap-3 border-t border-border bg-[color-mix(in_srgb,var(--bg)_92%,transparent)] py-4 backdrop-blur-md">

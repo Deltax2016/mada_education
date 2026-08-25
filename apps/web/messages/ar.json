@@ -319,7 +319,10 @@
     "studentRating": "تقييمه",
     "backToCourses": "إلى دوراتي",
     "notInstructor": "هذه المنطقة للمدرّبين",
-    "notInstructorBody": "أنشئ ملف المدرّب أولاً، وتستغرق دقيقة واحدة."
+    "notInstructorBody": "أنشئ ملف المدرّب أولاً، وتستغرق دقيقة واحدة.",
+    "slashHint": "اكتب، أو اضغط / لإضافة كتلة",
+    "slashSearch": "ابحث عن كتلة",
+    "blockImage": "صورة"
   },
   "media": {
     "uploadCover": "ارفع صورة الغلاف",

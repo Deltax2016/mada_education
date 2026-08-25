@@ -307,7 +307,10 @@
     "studentRating": "Their rating",
     "backToCourses": "Back to my courses",
     "notInstructor": "This area is for instructors",
-    "notInstructorBody": "Create an instructor profile first. It takes a minute."
+    "notInstructorBody": "Create an instructor profile first. It takes a minute.",
+    "slashHint": "Write, or press / to add a block",
+    "slashSearch": "Search blocks",
+    "blockImage": "Image"
   },
   "media": {
     "uploadCover": "Upload a cover image",
