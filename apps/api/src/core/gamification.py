@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import (
     Certificate,
+    Lesson,
     LessonProgress,
     QuizAttempt,
     UserAchievement,
@@ -175,10 +176,16 @@ async def stats(db: AsyncSession, user_id: str, locale: str = "ar") -> dict:
         )
     ).scalar_one()
 
-    watched_seconds = (
+    # Minutes of material finished, not seconds of video played. Reading a text
+    # lesson produces no watch time, and a student who finished twelve lessons
+    # being told they have learned for zero minutes reads as a broken counter.
+    minutes_learned = (
         await db.execute(
-            select(func.coalesce(func.sum(LessonProgress.watched_seconds), 0)).where(
-                LessonProgress.user_id == user_id
+            select(func.coalesce(func.sum(Lesson.duration_minutes), 0))
+            .select_from(LessonProgress)
+            .join(Lesson, Lesson.id == LessonProgress.lesson_id)
+            .where(
+                LessonProgress.user_id == user_id, LessonProgress.status == "completed"
             )
         )
     ).scalar_one()
@@ -208,7 +215,7 @@ async def stats(db: AsyncSession, user_id: str, locale: str = "ar") -> dict:
     metrics = {
         "totalXp": int(total_xp),
         "lessonsCompleted": int(lessons_completed),
-        "minutesLearned": int(watched_seconds // 60),
+        "minutesLearned": int(minutes_learned),
         "quizzesPassed": int(quizzes_passed),
         "perfectQuizzes": int(perfect_quizzes),
         "coursesCompleted": int(courses_completed),

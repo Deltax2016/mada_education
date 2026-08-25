@@ -41,6 +41,9 @@ export function CourseCover({
         alt=""
         fill
         sizes={sizes}
+        // Drawn covers are vector and already small; the optimiser refuses SVG
+        // anyway unless the whole app opts in, which uploads should not inherit.
+        unoptimized={src.endsWith(".svg")}
         className={`object-cover ${className}`}
       />
     );

@@ -107,11 +107,14 @@ async def lifespan(app: FastAPI):
     # like a broken site rather than a new one. Loading only when the catalogue is
     # completely empty makes this a one time bootstrap that never touches a
     # catalogue anyone has since curated.
-    from .content_loader import load_if_empty
+    from .content_loader import load_if_empty, refresh_placeholder_art
     from .core.db import SessionLocal
 
     async with SessionLocal() as db:
         result = await load_if_empty(db)
+        repaired = await refresh_placeholder_art(db)
+        if repaired:
+            log.info("replaced %d placeholder images with drawn art", repaired)
     if result:
         log.info(
             f"loaded {len(result['added'])} courses into an empty catalogue",

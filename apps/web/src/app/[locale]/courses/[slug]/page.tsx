@@ -118,6 +118,7 @@ export default async function CoursePage({
                   alt=""
                   width={44}
                   height={44}
+                  unoptimized={course.instructor.avatarUrl.endsWith(".svg")}
                   className="rounded-full object-cover"
                 />
               ) : null}
