@@ -160,6 +160,11 @@ async def verify_code(payload: CodeVerify, db: DB, locale: Locale):
     }
 
 
+# How long after a rotation a repeat of the old token still counts as a race
+# between a browser's own parallel requests rather than a leak.
+REFRESH_RACE_GRACE = 30
+
+
 class RefreshIn(BaseModel):
     refreshToken: str
 
@@ -173,7 +178,21 @@ async def refresh_token(payload: RefreshIn, db: DB, locale: Locale):
         raise AppError("auth.refresh_invalid", 401, "Refresh token is not valid")
 
     if session.revoked_at:
-        # Reuse of a rotated token means the token leaked. Kill the whole family.
+        revoked = session.revoked_at
+        if revoked.tzinfo is None:
+            revoked = revoked.replace(tzinfo=timezone.utc)
+
+        # A browser fires several requests at once, and with an expired access
+        # token each one arrives holding the same refresh token. The one that
+        # loses that race is not an attacker replaying a stolen token weeks
+        # later, so a rotation seconds old is treated as the race it is: this
+        # request simply renders signed out, and the cookies the winner set take
+        # over on the next one. Killing the family here would sign the user out
+        # of a device for doing nothing but loading a page.
+        if datetime.now(timezone.utc) - revoked < timedelta(seconds=REFRESH_RACE_GRACE):
+            raise AppError("auth.refresh_raced", 401, "Refresh token was just rotated")
+
+        # Beyond that window, reuse means the token leaked. Kill the whole family.
         family = await db.execute(select(Session).where(Session.family_id == session.family_id))
         for s in family.scalars():
             s.revoked_at = datetime.now(timezone.utc)

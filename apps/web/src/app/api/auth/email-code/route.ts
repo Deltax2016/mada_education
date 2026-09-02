@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { API_URL } from "@/lib/api";
+import { apiUrl } from "@/lib/api-url";
 
 export async function POST(request: Request) {
   const body = await request.json();
   const locale = new URL(request.url).searchParams.get("locale") ?? "ar";
-  const res = await fetch(`${API_URL}/api/v1/auth/email/code?locale=${locale}`, {
+  const res = await fetch(apiUrl("/auth/email/code", { locale }), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

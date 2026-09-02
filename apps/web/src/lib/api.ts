@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 
+import { apiUrl } from "./api-url";
 import { getAccessToken } from "./session";
 import type { Locale } from "./i18n";
 
-export const API_URL =
-  process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8010";
+export { API_URL, apiUrl } from "./api-url";
 
 export class ApiError extends Error {
   constructor(
@@ -33,7 +33,7 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   const { locale, method = "GET", body, cache, revalidate } = options;
   const token = options.token !== undefined ? options.token : await getAccessToken();
 
-  const url = new URL(`/api/v1${path}`, API_URL);
+  const url = apiUrl(path);
   if (locale && !url.searchParams.has("locale")) {
     url.searchParams.set("locale", locale);
   }

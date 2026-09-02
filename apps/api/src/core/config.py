@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     jwt_secret: str = "dev-secret-change-me"
     jwt_access_ttl: int = 900
-    jwt_refresh_ttl: int = 2_592_000
+    jwt_refresh_ttl: int = 7_776_000  # 90 days
 
     default_locale: str = "ar"
     supported_locales: str = "ar,en"
